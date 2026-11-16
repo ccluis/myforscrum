@@ -5,7 +5,9 @@ Aplicação web de apoio à framework **forScrum**, pensada para a educação e 
 Desenvolvida no âmbito da tese de doutoramento *Um contributo para a acessibilidade e a usabilidade em ambientes virtuais de aprendizagem para pessoas com baixos níveis de literacia* (Carlos Luís, Departamento de Engenharia Informática, Universidade de Coimbra, 2026), orientada pela Professora Doutora Maria José Marcelino.
 
 - **Aplicação:** https://myforscrum.vercel.app
-- **Ligação ao Moodle:** ver [`docs/MOODLE.md`](docs/MOODLE.md)
+- **Guia de utilização:** [`docs/COMO-FUNCIONA.md`](docs/COMO-FUNCIONA.md)
+- **Arquitetura do código:** [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)
+- **Ligação ao Moodle:** [`docs/MOODLE.md`](docs/MOODLE.md)
 
 ---
 
