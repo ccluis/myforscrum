@@ -47,7 +47,7 @@ export function BottomNav({ currentScreen, onNavigate, onLogout }: BottomNavProp
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 mx-auto max-w-[390px] bg-white border-t-2 border-slate-200 shadow-lg z-50 dark:bg-slate-800 dark:border-slate-700 transition-colors duration-200">
+    <div className="fixed bottom-0 left-0 right-0 mx-auto max-w-[390px] md:max-w-3xl bg-white border-t-2 border-slate-200 shadow-lg z-50 dark:bg-slate-800 dark:border-slate-700 transition-colors duration-200">
       <div className="px-2 py-2.5">
         <div className="flex items-center justify-around gap-1">
           {navItems.map((item) => {

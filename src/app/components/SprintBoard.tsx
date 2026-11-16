@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useApp } from '../context/AppContext';
 import { Header } from './shared/Header';
 import { publicAnonKey } from '../utils/supabase/info';
+import { storyPoints, votesAverage } from '../data/sprintMetrics';
 import { API_URL } from '../data/database';
 
 interface UserStory {
@@ -118,27 +119,8 @@ function StoryCard({
   const hasPoints = story.points !== null && story.points !== undefined && Number(story.points) > 0;
   const pointsValue = Number(story.points) || 0;
 
-  // Calcular média dos votos
-  const calculateAverageVote = () => {
-    if (!story.votes || story.votes.length === 0) return null;
-    const sum = story.votes.reduce((acc, vote) => acc + vote.value, 0);
-    return Math.round(sum / story.votes.length);
-  };
-
-  const averageVote = calculateAverageVote();
-  
-  // 🔍 DEBUG TEMPORÁRIO
-  if (story.title.includes('Story')) {
-    console.log('🐛 DEBUG BADGE:', {
-      title: story.title,
-      points: story.points,
-      pointsType: typeof story.points,
-      hasPoints,
-      votes: story.votes,
-      votesLength: story.votes?.length,
-      averageVote
-    });
-  }
+  // Média dos votos do Scrum Poker em pontos (S = 3, M = 5, L = 8, XL = 13)
+  const averageVote = story.votes && story.votes.length > 0 ? votesAverage(story) || null : null;
 
   return (
     <div
@@ -222,7 +204,7 @@ function Column({
   }));
 
   const getTotalPoints = () => {
-    return stories.reduce((sum, story) => sum + story.points, 0);
+    return stories.reduce((sum, story) => sum + storyPoints(story), 0);
   };
 
   return (
@@ -749,7 +731,7 @@ function SprintBoardContent({ userType, onBack, onCreateStory, onNavigate, sprin
   };
 
   const getTotalPoints = () => {
-    return Object.values(stories).flat().reduce((sum, story) => sum + story.points, 0);
+    return Object.values(stories).flat().reduce((sum, story) => sum + storyPoints(story), 0);
   };
 
   const getCompletionPercentage = () => {
@@ -771,7 +753,7 @@ function SprintBoardContent({ userType, onBack, onCreateStory, onNavigate, sprin
       />
 
       {/* Conteúdo principal - espaçamento para o header fixo */}
-      <div className="w-full max-w-[390px] mx-auto px-6 pt-32 space-y-4">
+      <div className="w-full max-w-[390px] md:max-w-3xl mx-auto px-6 pt-32 space-y-4">
         {/* Info Card - Stories Count */}
         <div 
           className="rounded-xl p-4 shadow-sm"
@@ -820,7 +802,7 @@ function SprintBoardContent({ userType, onBack, onCreateStory, onNavigate, sprin
       </div>
 
       {/* Quadro Kanban com scroll horizontal - MANTÉM A MESMA LARGURA MÁXIMA */}
-      <div className="w-full max-w-[390px] mx-auto px-6 pt-6 scrollbar-hide">
+      <div className="w-full max-w-[390px] md:max-w-3xl mx-auto px-6 pt-6 scrollbar-hide">
         <div className="overflow-x-auto -mx-6 px-6">
           <div className="flex gap-4 min-w-max pb-20">
             {columns.map((column) => (

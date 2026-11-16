@@ -232,7 +232,7 @@ export function ManageAlerts({ onBack }: ManageAlertsProps) {
       />
 
       {/* Main Content */}
-      <div className="max-w-[390px] mx-auto px-6 pt-6 space-y-4">
+      <div className="max-w-[390px] md:max-w-3xl mx-auto px-6 pt-6 space-y-4">
         {/* Summary Card */}
         <div className="bg-gradient-to-br from-[#3b8433] to-[#2f6b29] rounded-[16px] p-5 shadow-lg text-white">
           <div className="flex items-center justify-between">

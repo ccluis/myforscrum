@@ -318,7 +318,7 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
       />
 
       {/* Main Content */}
-      <div className="w-full max-w-md mx-auto px-6 pt-6 pb-6 space-y-4">
+      <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 pt-6 pb-6 space-y-4">
         {/* Stats da equipa específica quando teamId está definido */}
         {teamId && selectedTeam && (
           <>

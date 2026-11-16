@@ -364,7 +364,7 @@ export function FormadorDashboard({ onLogout, onNavigate }: FormadorDashboardPro
       <Header onNavigate={onNavigate} showProfile={false} />
 
       {/* Main Content */}
-      <div className="w-full max-w-md mx-auto px-6 pt-10 pb-6 space-y-6">
+      <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 pt-10 pb-6 space-y-6">
         {/* Performance Cards - Grid 2x2 com 4 botões */}
         <div className="grid grid-cols-2 gap-3">
           <button

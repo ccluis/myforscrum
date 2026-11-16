@@ -549,7 +549,7 @@ export function ScrumPoker({ onBack }: ScrumPokerProps) {
       />
 
       {/* Main Content */}
-      <div className="max-w-[390px] mx-auto px-6 pt-[120px] pb-6 space-y-5">
+      <div className="max-w-[390px] md:max-w-3xl mx-auto px-6 pt-[120px] pb-6 space-y-5">
         {/* Story Being Voted */}
         <div 
           className="rounded-[16px] p-5 shadow-sm text-white"

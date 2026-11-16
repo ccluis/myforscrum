@@ -196,7 +196,7 @@ export function CreateCourse({ onBack, onSave }: CreateCourseProps) {
     <div className="bg-[#f0f0f0] min-h-screen h-full w-full font-['Roboto',-apple-system,BlinkMacSystemFont,sans-serif] overflow-auto">
       {/* Header */}
       <div className="bg-[#3b8433] px-6 pt-12 pb-6 rounded-b-[24px] shadow-lg">
-        <div className="max-w-[390px] mx-auto">
+        <div className="max-w-[390px] md:max-w-3xl mx-auto">
           <div className="flex items-center justify-between">
             <button 
               onClick={onBack}
@@ -221,7 +221,7 @@ export function CreateCourse({ onBack, onSave }: CreateCourseProps) {
       </div>
 
       {/* Form */}
-      <div className="w-full max-w-md mx-auto px-6 py-6 space-y-5 pb-32">
+      <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 py-6 space-y-5 pb-32">
         {/* Course Name */}
         <div>
           <label className="block text-[0.875rem] text-slate-700 mb-2 font-medium">
@@ -703,7 +703,7 @@ export function CourseManagement({ onBack, onNavigate }: CourseManagementProps) 
       />
 
       {/* Content */}
-      <div className="w-full max-w-md mx-auto px-6 py-8 space-y-4">
+      <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 py-8 space-y-4">
         {/* Criar Curso Button */}
         <button
           onClick={() => setShowCreateCourse(true)}

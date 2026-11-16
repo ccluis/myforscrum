@@ -147,7 +147,7 @@ export function Alerts({ onNavigate }: AlertsProps) {
       <Header title="Alertas" onBack={handleBack} showProfile={false} />
 
       {/* Main Content */}
-      <div className="max-w-[390px] mx-auto px-6 pt-6 space-y-4">
+      <div className="max-w-[390px] md:max-w-3xl mx-auto px-6 pt-6 space-y-4">
         {isLoading && alerts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="text-[#0a7da0] animate-spin mb-4" size={40} />

@@ -100,7 +100,7 @@ export function ProfileSettings({
               : `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
           }}
         >
-          <div className="max-w-[390px] mx-auto">
+          <div className="max-w-[390px] md:max-w-3xl mx-auto">
             <div className="flex items-center justify-between mb-2">
               <button
                 onClick={onBack}
@@ -139,7 +139,7 @@ export function ProfileSettings({
         </div>
 
         {/* Menu Options - MAIS ESPAÇO NO TOPO */}
-        <div className="max-w-[390px] mx-auto px-6 pt-3 space-y-3">
+        <div className="max-w-[390px] md:max-w-3xl mx-auto px-6 pt-3 space-y-3">
           <button
             onClick={() => setActiveSection("profile")}
             className="w-full bg-white rounded-[16px] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between border-2 border-transparent dark:bg-slate-800 dark:hover:bg-slate-700"
@@ -267,7 +267,7 @@ export function ProfileSettings({
               : `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
           }}
         >
-          <div className="max-w-[390px] mx-auto">
+          <div className="max-w-[390px] md:max-w-3xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <button
                 onClick={() => setActiveSection("menu")}
@@ -319,7 +319,7 @@ export function ProfileSettings({
         </div>
 
         {/* Form */}
-        <div className="max-w-[390px] mx-auto px-6 py-6 space-y-5">
+        <div className="max-w-[390px] md:max-w-3xl mx-auto px-6 py-6 space-y-5">
           {/* Name */}
           <div>
             <label className="text-[0.875rem] text-slate-700 mb-2 block dark:text-slate-300">
@@ -485,7 +485,7 @@ export function ProfileSettings({
               : `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
           }}
         >
-          <div className="max-w-[390px] mx-auto">
+          <div className="max-w-[390px] md:max-w-3xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <button
                 onClick={() => setActiveSection("menu")}
@@ -535,7 +535,7 @@ export function ProfileSettings({
         </div>
 
         {/* Settings Form */}
-        <div className="max-w-[390px] mx-auto px-6 py-6 space-y-5">
+        <div className="max-w-[390px] md:max-w-3xl mx-auto px-6 py-6 space-y-5">
           {/* Notifications */}
           <div className="bg-white rounded-[16px] p-4 shadow-sm dark:bg-slate-800 dark:border-slate-700">
             <h3 className="text-[0.875rem] text-slate-800 mb-3 dark:text-slate-200">

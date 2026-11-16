@@ -225,7 +225,7 @@ export function CalendarView({ onNavigate }: CalendarViewProps) {
     <div className="bg-[#f0f0f0] min-h-screen w-full font-['Roboto',-apple-system,BlinkMacSystemFont,sans-serif] pb-24">
       {/* Header com seta de voltar */}
       <div className="bg-[#3b8433] px-6 pt-6 pb-3 rounded-b-[16px] shadow-lg">
-        <div className="w-full max-w-md mx-auto">
+        <div className="w-full max-w-md md:max-w-3xl mx-auto">
           <div className="flex items-center justify-between">
             <button 
               onClick={() => onNavigate?.('dashboard')}
@@ -239,7 +239,7 @@ export function CalendarView({ onNavigate }: CalendarViewProps) {
         </div>
       </div>
 
-      <div className="w-full max-w-md mx-auto px-6 py-6 space-y-4">
+      <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 py-6 space-y-4">
         {/* Month Selector */}
         <div className="bg-white rounded-[16px] p-4 shadow-sm">
           <div className="flex items-center justify-between mb-4">

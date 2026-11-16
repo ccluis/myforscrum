@@ -272,7 +272,7 @@ export function CreateSprint({ onBack, onSave, courseId: initialCourseId, course
       <div className="bg-[#f0f0f0] min-h-screen h-full w-full font-['Roboto',-apple-system,BlinkMacSystemFont,sans-serif] pb-24 overflow-auto">
         {/* Header */}
         <div className="bg-[#3b8433] px-6 pt-12 pb-6 rounded-b-[24px] shadow-lg">
-          <div className="max-w-[390px] mx-auto">
+          <div className="max-w-[390px] md:max-w-3xl mx-auto">
             <div className="flex items-center justify-between">
               <button 
                 onClick={onBack}
@@ -287,7 +287,7 @@ export function CreateSprint({ onBack, onSave, courseId: initialCourseId, course
         </div>
 
         {/* Success Card */}
-        <div className="w-full max-w-md mx-auto px-6 py-6">
+        <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 py-6">
           <div className="bg-white rounded-[20px] p-6 shadow-lg border-2 border-green-200">
             <div className="flex items-center justify-center mb-6">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
@@ -353,7 +353,7 @@ export function CreateSprint({ onBack, onSave, courseId: initialCourseId, course
     <div className="bg-[#f0f0f0] min-h-screen h-full w-full font-['Roboto',-apple-system,BlinkMacSystemFont,sans-serif] overflow-auto">
       {/* Header com contexto do curso */}
       <div className="bg-[#3b8433] px-6 pt-12 pb-6 rounded-b-[24px] shadow-lg">
-        <div className="max-w-[390px] mx-auto">
+        <div className="max-w-[390px] md:max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <button 
               onClick={onBack}
@@ -387,7 +387,7 @@ export function CreateSprint({ onBack, onSave, courseId: initialCourseId, course
       </div>
 
       {/* Form */}
-      <div className="w-full max-w-md mx-auto px-6 py-6 space-y-5 pb-32">
+      <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 py-6 space-y-5 pb-32">
         {/* Sprint Name */}
         <div>
           <label className="text-[0.875rem] text-slate-700 mb-2 block flex items-center gap-2">

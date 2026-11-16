@@ -30,7 +30,7 @@ export function Header({ onNavigate, title, showActions = true, onBack, onCreate
           : `linear-gradient(to bottom right, ${primaryColor} 0%, ${primaryColor} 70%, ${secondaryColor} 100%)`
       }}
     >
-      <div className="max-w-[390px] mx-auto">
+      <div className="max-w-[390px] md:max-w-3xl mx-auto">
         {/* Top Bar - sempre presente (só no dashboard/home) */}
         {showActions && !title && (
           <div className="flex items-center justify-between">

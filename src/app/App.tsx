@@ -755,8 +755,8 @@ export default function App() {
       >
         Saltar para o conteúdo
       </a>
-      <div className="bg-white min-h-screen w-full md:flex md:items-center md:justify-center font-['Roboto']">
-        <div className="relative w-full min-h-screen md:min-h-0 md:h-[844px] md:max-w-md md:w-full md:shadow-2xl md:rounded-[40px] bg-white overflow-hidden">
+      <div className="bg-white min-h-screen w-full font-['Roboto']">
+        <div className="relative w-full min-h-screen bg-white overflow-hidden">
           
           {/* Ilustração superior */}
           <div className="relative h-[280px] bg-gradient-to-br from-[#3b8433] to-[#2f6b29] px-6 pt-20 pb-8 overflow-hidden">
@@ -786,7 +786,7 @@ export default function App() {
           </div>
 
           {/* Formulário */}
-          <main id="conteudo" tabIndex={-1} className="px-6 pt-8 pb-12 focus:outline-none">
+          <main id="conteudo" tabIndex={-1} className="w-full max-w-md mx-auto px-6 pt-8 pb-12 focus:outline-none">
             <form onSubmit={handleLogin} className="space-y-5">
               {/* Campo Nome do Utilizador */}
               <div className="flex flex-col gap-2">

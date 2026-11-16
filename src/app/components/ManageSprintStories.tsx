@@ -182,7 +182,7 @@ export function ManageSprintStories({ sprintId, sprintName, onBack }: ManageSpri
         className="px-6 pt-6 pb-3 rounded-b-[20px] shadow-md"
         style={{ backgroundColor: primaryColor }}
       >
-        <div className="max-w-[390px] mx-auto">
+        <div className="max-w-[390px] md:max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-2">
             <button 
               onClick={handleBackClick}
@@ -202,7 +202,7 @@ export function ManageSprintStories({ sprintId, sprintName, onBack }: ManageSpri
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[390px] mx-auto px-6 py-6 space-y-4 pb-40">
+      <div className="max-w-[390px] md:max-w-3xl mx-auto px-6 py-6 space-y-4 pb-40">
         {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
@@ -314,7 +314,7 @@ export function ManageSprintStories({ sprintId, sprintName, onBack }: ManageSpri
 
       {/* Fixed Bottom Buttons */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-50" style={{ boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-        <div className="max-w-[390px] mx-auto space-y-3">
+        <div className="max-w-[390px] md:max-w-3xl mx-auto space-y-3">
           {/* Indicador de alterações não guardadas */}
           {hasUnsavedChanges && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 flex items-center gap-2">

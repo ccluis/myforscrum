@@ -353,7 +353,7 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
           className="px-6 pt-6 pb-3 rounded-b-[20px] shadow-md"
           style={{ backgroundColor: primaryColor }}
         >
-          <div className="max-w-[390px] mx-auto flex items-center justify-between">
+          <div className="max-w-[390px] md:max-w-3xl mx-auto flex items-center justify-between">
             <button 
               onClick={onBack}
               className="bg-white/20 backdrop-blur-sm p-2 rounded-full hover:bg-white/30 transition-colors"
@@ -365,7 +365,7 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
           </div>
         </div>
 
-        <div className="max-w-[390px] mx-auto px-6 py-12 text-center">
+        <div className="max-w-[390px] md:max-w-3xl mx-auto px-6 py-12 text-center">
           <AlertCircle className="text-slate-300 mx-auto mb-3" size={48} />
           <h3 className="text-[0.9375rem] text-slate-800 mb-2">User story não encontrada</h3>
           <button
@@ -387,7 +387,7 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
         className="fixed top-0 left-0 right-0 z-50 px-6 pt-6 pb-3 rounded-b-[20px] shadow-md"
         style={{ backgroundColor: primaryColor }}
       >
-        <div className="max-w-[390px] mx-auto">
+        <div className="max-w-[390px] md:max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-2">
             <button 
               onClick={onBack}
@@ -474,7 +474,7 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
       </div>
 
       {/* Content - com padding-top para compensar o header fixo */}
-      <div className="max-w-[390px] mx-auto px-6 pt-32 pb-6 space-y-4">
+      <div className="max-w-[390px] md:max-w-3xl mx-auto px-6 pt-32 pb-6 space-y-4">
         {/* Título */}
         <div className="bg-white rounded-[16px] p-4 shadow-sm">
           <h2 className="text-[1rem] text-slate-800 font-medium">{story.title}</h2>
@@ -678,7 +678,7 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
             className="px-6 pt-6 pb-4 rounded-b-[20px] shadow-md"
             style={{ backgroundColor: primaryColor }}
           >
-            <div className="max-w-[390px] mx-auto">
+            <div className="max-w-[390px] md:max-w-3xl mx-auto">
               <div className="flex items-center justify-between mb-2">
                 <button 
                   onClick={() => setIsEditing(false)}
@@ -705,7 +705,7 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
 
           {/* Content - Scrollable */}
           <div className="flex-1 overflow-y-auto px-6 py-6">
-            <div className="max-w-[390px] mx-auto space-y-4">
+            <div className="max-w-[390px] md:max-w-3xl mx-auto space-y-4">
               {/* Título */}
               <div>
                 <label htmlFor="edit-title" className="block text-[0.8125rem] font-medium text-slate-700 mb-2">

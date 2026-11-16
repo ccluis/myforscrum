@@ -289,7 +289,7 @@ export function MessagesFormando({ onBack }: MessagesFormandoProps) {
       />
 
       {/* Content */}
-      <div className="w-full max-w-md mx-auto px-6 py-4 space-y-4">
+      <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 py-4 space-y-4">
         {/* Header com contador */}
         <div className="flex items-center justify-between">
           <div>

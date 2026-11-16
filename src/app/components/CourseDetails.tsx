@@ -739,7 +739,7 @@ export function CourseDetails({ onBack, onNavigate, courseName, courseId, initia
       />
 
       {/* Tabs */}
-      <div className="w-full max-w-md mx-auto px-6 pt-2">
+      <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 pt-2">
         <div className="bg-white rounded-[16px] p-2 shadow-sm space-y-2">
           <button
             onClick={() => setActiveTab('overview')}
@@ -815,7 +815,7 @@ export function CourseDetails({ onBack, onNavigate, courseName, courseId, initia
       </div>
 
       {/* Content */}
-      <div className="w-full max-w-md mx-auto px-6 py-6 space-y-4">
+      <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 py-6 space-y-4">
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="bg-white rounded-[16px] p-5 shadow-sm">

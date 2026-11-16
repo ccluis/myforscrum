@@ -245,7 +245,7 @@ export function FormandoSprints({ onBack, onNavigate }: FormandoSprintsProps) {
         showProfile={false}
       />
 
-      <div className="w-full max-w-md mx-auto px-6 pt-30 space-y-4">
+      <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 pt-30 space-y-4">
         {/* Verificar se o formando tem equipa */}
         {!loggedStudent?.teamId ? (
           <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-[16px] shadow-sm">
@@ -285,7 +285,7 @@ export function FormandoSprints({ onBack, onNavigate }: FormandoSprintsProps) {
             </div>
 
             {/* Stats Cards */}
-            <div className="w-full max-w-md mx-auto px-6 mb-6">
+            <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 mb-6">
               <div className="grid grid-cols-3 gap-3">
                 {/* Total Sprints */}
                 <div className="bg-white dark:bg-slate-800 rounded-[16px] p-4 text-center shadow-sm">

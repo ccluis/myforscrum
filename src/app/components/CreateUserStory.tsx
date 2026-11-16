@@ -439,7 +439,7 @@ export function CreateUserStory({ onBack, onSave, sprintId: initialSprintId, spr
     <div className="bg-[#f0f0f0] min-h-screen w-full font-['Roboto',-apple-system,BlinkMacSystemFont,sans-serif] pb-24 pt-[100px]">
       {/* Header Fixo - Compacto */}
       <div className="fixed top-0 left-0 right-0 bg-[#3b8433] px-6 pt-6 pb-3 rounded-b-[20px] shadow-md z-50">
-        <div className="max-w-[390px] mx-auto">
+        <div className="max-w-[390px] md:max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-2">
             <button 
               onClick={onBack}
@@ -484,7 +484,7 @@ export function CreateUserStory({ onBack, onSave, sprintId: initialSprintId, spr
       </div>
 
       {/* Conteúdo principal com espaçamento para o header fixo */}
-      <div className="max-w-[390px] mx-auto px-6 py-6 space-y-5">
+      <div className="max-w-[390px] md:max-w-3xl mx-auto px-6 py-6 space-y-5">
         {/* Title */}
         <div>
           <label className="text-[0.875rem] text-slate-700 mb-2 block flex items-center gap-2">

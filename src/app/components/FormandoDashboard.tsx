@@ -226,7 +226,7 @@ export function FormandoDashboard({ onLogout, onNavigate }: FormandoDashboardPro
       <Header onNavigate={onNavigate} showProfile={false} />
 
       {/* Main Content */}
-      <div className="w-full max-w-md mx-auto px-6 pt-6 pb-6 space-y-6">
+      <div className="w-full max-w-md md:max-w-3xl mx-auto px-6 pt-6 pb-6 space-y-6">
         {/* Minha Equipa - Destaque */}
         <div className="bg-gradient-to-br from-[#0a7da0] to-[#096d8a] rounded-[16px] p-5 shadow-lg text-white">
           <div className="flex items-start justify-between mb-4">
