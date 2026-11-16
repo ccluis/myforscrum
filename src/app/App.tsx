@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { User, AlertCircle, CheckCircle, GraduationCap, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from './components/ui/sonner';
-import svgPaths from './imports/svg-qi3x6nzkk2';
 import { API_URL } from './data/database';
 
 // Context and Components
@@ -28,35 +27,6 @@ import { ManageAlerts } from './components/ManageAlerts';
 import { CourseDetails } from './components/CourseDetails';
 import { FormandoSprints } from './components/FormandoSprints';
 import { ConnectionStatus } from './components/ConnectionStatus';
-
-function SsoIcon() {
-  return (
-    <div className="relative shrink-0 size-[24px]" data-name="SSO Icon">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
-        <g id="SSO Icon">
-          <path clipRule="evenodd" d={svgPaths.p2c309900} fill="var(--fill-0, #4285F4)" fillRule="evenodd" id="Shape" />
-          <path clipRule="evenodd" d={svgPaths.p5439c80} fill="var(--fill-0, #34A853)" fillRule="evenodd" id="Shape_2" />
-          <path clipRule="evenodd" d={svgPaths.p3b443800} fill="var(--fill-0, #FBBC05)" fillRule="evenodd" id="Shape_3" />
-          <path clipRule="evenodd" d={svgPaths.p39a0e280} fill="var(--fill-0, #EA4335)" fillRule="evenodd" id="Shape_4" />
-          <g id="Shape_5"></g>
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function AppleLogo() {
-  return (
-    <div className="relative shrink-0 size-[24px]" data-name="Apple Logo">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
-        <g id="Apple Logo">
-          <rect fill="var(--fill-0, #979191)" height="24" rx="12" width="24" />
-          <path d={svgPaths.p2c445b80} fill="var(--fill-0, #FFFCFC)" id="path4" />
-        </g>
-      </svg>
-    </div>
-  );
-}
 
 type UserType = 'formador' | 'formando' | null;
 
@@ -615,16 +585,6 @@ export default function App() {
       setIsLoading(false);
       toast.error('Erro ao realizar login. Tente novamente.');
     }
-  };
-
-  const handleGoogleLogin = () => {
-    toast.info('Login com Google em desenvolvimento');
-    console.log('Google login clicked');
-  };
-
-  const handleAppleLogin = () => {
-    toast.info('Login com Apple em desenvolvimento');
-    console.log('Apple login clicked');
   };
 
   const handleLogout = () => {
