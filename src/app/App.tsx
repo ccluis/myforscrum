@@ -76,7 +76,8 @@ function AppContent({
   sprintBoardKey,
   createTeamParams,
   setCreateTeamParams,
-  navigationParams
+  navigationParams,
+  ltiTeacher
 }: {
   userType: UserType;
   currentScreen: string;
@@ -93,6 +94,7 @@ function AppContent({
   createTeamParams: { courseId: string; courseName: string } | null;
   setCreateTeamParams: (params: { courseId: string; courseName: string } | null) => void;
   navigationParams: any;
+  ltiTeacher: { name: string; email: string } | null;
 }) {
   try {
     const { setUserType, theme, setLoggedStudent, setUserProfile, setSelectedCourse, fontSize, previousScreen } = useApp();
@@ -141,6 +143,19 @@ function AppContent({
           }
         } else if (userType === 'formador') {
           // Restaurar perfil do formador quando não há formando logado
+          if (ltiTeacher) {
+            // Formador que entrou pelo Moodle: usar o nome e o email do Moodle
+            setUserProfile({
+              name: ltiTeacher.name,
+              email: ltiTeacher.email,
+              phone: '',
+              location: '',
+              bio: 'Formador',
+              expertise: 'Moodle',
+              avatar: ltiTeacher.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2),
+            });
+            return;
+          }
           setUserProfile({
             name: 'Carlos Luís',
             email: 'ccluis@gmail.com',
@@ -154,7 +169,7 @@ function AppContent({
       } catch (error) {
         console.error('[ERROR] Erro ao atualizar perfil de utilizador:', error);
       }
-    }, [loggedStudentData, userType]);
+    }, [loggedStudentData, userType, ltiTeacher]);
 
     // Apply theme and fontSize classes to html element
     useEffect(() => {
@@ -327,6 +342,48 @@ export default function App() {
   const [sprintBoardKey, setSprintBoardKey] = useState(0); // Key para forçar reload do SprintBoard
   const [createTeamParams, setCreateTeamParams] = useState<{ courseId: string; courseName: string } | null>(null); // NOVO: Guardar params do createTeam
   const [navigationParams, setNavigationParams] = useState<any>({}); // NOVO: Guardar params de navegação
+  const [ltiTeacher, setLtiTeacher] = useState<{ name: string; email: string } | null>(null); // Formador vindo do Moodle
+
+  // Entrada automática a partir do Moodle (LTI 1.3): /?lti=<dados>
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get('lti');
+    if (!raw) return;
+    window.history.replaceState(null, '', window.location.pathname);
+    try {
+      const json = atob(raw.replace(/-/g, '+').replace(/_/g, '/'));
+      const data = JSON.parse(decodeURIComponent(escape(json)));
+      if (!data || (data.exp && data.exp < Date.now())) {
+        toast.error('A ligação do Moodle expirou. Abra de novo a atividade no Moodle.');
+        return;
+      }
+      if (data.role === 'formador') {
+        setLtiTeacher({ name: data.name, email: data.email });
+        setUserType('formador');
+        setIsLoggedIn(true);
+        if (data.courseId) {
+          setSelectedCourseId(data.courseId);
+          setSelectedCourseName(data.courseName);
+        }
+      } else {
+        setLoggedStudentData({
+          id: data.studentId,
+          name: data.name,
+          email: data.email,
+          courseId: data.courseId,
+          courseName: data.courseName,
+          teamId: '',
+          teamName: 'Sem Equipa',
+        });
+        setUserType('formando');
+        setIsLoggedIn(true);
+      }
+      toast.success(`Bem-vindo, ${data.name}!`);
+    } catch (error) {
+      console.error('[LTI] Dados de entrada inválidos:', error);
+      toast.error('Não foi possível entrar a partir do Moodle.');
+    }
+  }, []);
 
   // Validação do nome de utilizador
   const validateUsername = (value: string): string | undefined => {
@@ -579,6 +636,7 @@ export default function App() {
     setErrors({});
     setCurrentScreen('dashboard');
     setLoggedStudentData(null);
+    setLtiTeacher(null);
   };
 
   // Função para navegar entre ecrãs
@@ -740,6 +798,7 @@ export default function App() {
           createTeamParams={createTeamParams}
           setCreateTeamParams={setCreateTeamParams}
           navigationParams={navigationParams}
+          ltiTeacher={ltiTeacher}
         />
       </AppProvider>
     );
