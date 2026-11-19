@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Users, Eye, EyeOff, RotateCcw, Save, ChevronDown, Trophy, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Users, Eye, EyeOff, RotateCcw, Save, ChevronDown, ChevronLeft, ChevronRight, Trophy, CheckCircle } from 'lucide-react';
 import { toast } from "sonner";
 import { useApp } from '../context/AppContext';
 import { Header } from './shared/Header';
@@ -8,6 +8,8 @@ import { API_URL } from '../data/database';
 
 interface ScrumPokerProps {
   onBack: () => void;
+  /** Sprint aberto no quadro (as stories em votação são as deste sprint) */
+  sprintId?: string | null;
 }
 
 type VotingSystem = 'tshirt';
@@ -32,7 +34,7 @@ interface UserStory {
   status?: string;
 }
 
-export function ScrumPoker({ onBack }: ScrumPokerProps) {
+export function ScrumPoker({ onBack, sprintId }: ScrumPokerProps) {
   const { userType, userProfile, selectedUserStory, selectedCourse, loggedStudent, setSelectedUserStory } = useApp();
   
   const primaryColor = userType === 'formando' ? '#0a7da0' : '#3b8433';
@@ -46,7 +48,8 @@ export function ScrumPoker({ onBack }: ScrumPokerProps) {
   const [userStories, setUserStories] = useState<UserStory[]>([]);
   const [loadingStories, setLoadingStories] = useState(true);
   
-  const [currentStoryId, setCurrentStoryId] = useState<string | null>(null);
+  // Começa na user story de onde o formando veio (se veio de uma)
+  const [currentStoryId, setCurrentStoryId] = useState<string | null>(selectedUserStory?.id || null);
   const [showStorySelector, setShowStorySelector] = useState(false);
 
   
@@ -71,7 +74,8 @@ export function ScrumPoker({ onBack }: ScrumPokerProps) {
   useEffect(() => {
     if (!currentStoryId || votesRevealed) return;
     
-    // Iniciar polling
+    // Mostrar logo os votos já guardados desta story e depois atualizar a cada 3 segundos
+    syncVotesFromBackend();
     const interval = setInterval(() => {
       syncVotesFromBackend();
     }, 3000); // A cada 3 segundos
@@ -177,12 +181,19 @@ export function ScrumPoker({ onBack }: ScrumPokerProps) {
           });
         }
         
-        console.log('[ScrumPoker] 📋 Stories filtradas:', filteredStories);
+        // Só as stories do sprint em causa (o da story escolhida ou o do quadro)
+        const sprintToShow = selectedUserStory?.sprintId || sprintId;
+        if (sprintToShow) {
+          const ofSprint = filteredStories.filter((story: any) => story.sprintId === sprintToShow);
+          if (ofSprint.length > 0) filteredStories = ofSprint;
+        }
+
         setUserStories(filteredStories);
         
-        // Se não houver story selecionada, selecionar a primeira
+        // Sem story escolhida: começar pela primeira ainda por estimar
         if (filteredStories.length > 0 && !currentStoryId) {
-          setCurrentStoryId(filteredStories[0].id);
+          const firstToEstimate = filteredStories.find((story: any) => !(Number(story.points) > 0));
+          setCurrentStoryId((firstToEstimate || filteredStories[0]).id);
         }
         
         // ⭐ CORREÇÃO IMPORTANTE: Atualizar selectedUserStory no contexto
@@ -384,6 +395,21 @@ export function ScrumPoker({ onBack }: ScrumPokerProps) {
     }
   };
 
+  // Mudar de story: limpa só o que está no ecrã (os votos guardados não se apagam)
+  const goToStory = (storyId: string) => {
+    if (storyId === currentStoryId) return;
+    setCurrentStoryId(storyId);
+    setSelectedVote(null);
+    setVotesRevealed(false);
+    setTeamMembers(prev => prev.map(member => ({ ...member, vote: null, hasVoted: false })));
+    const story = userStories.find(st => st.id === storyId);
+    if (story) setSelectedUserStory(story);
+  };
+
+  const currentIndex = userStories.findIndex(st => st.id === currentStoryId);
+  const previousStory = currentIndex > 0 ? userStories[currentIndex - 1] : null;
+  const nextStory = currentIndex >= 0 && currentIndex < userStories.length - 1 ? userStories[currentIndex + 1] : null;
+
   const handleResetVotes = () => {
     setSelectedVote(null);
     setVotesRevealed(false);
@@ -559,7 +585,7 @@ export function ScrumPoker({ onBack }: ScrumPokerProps) {
         >
           <div className="flex items-start justify-between mb-2">
             <p className="text-white/80 text-[0.75rem]">User Story em Votação</p>
-            {currentStory?.points && currentStory.points > 0 && (
+            {Number(currentStory?.points) > 0 && (
               <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1.5">
                 <CheckCircle size={14} />
                 <span className="text-[0.8125rem] font-medium">{currentStory.points} pts</span>
@@ -598,10 +624,8 @@ export function ScrumPoker({ onBack }: ScrumPokerProps) {
                     <button
                       key={story.id}
                       onClick={() => {
-                        setCurrentStoryId(story.id);
                         setShowStorySelector(false);
-                        handleResetVotes();
-                        toast.success(`Story selecionada: ${story.title}`);
+                        goToStory(story.id);
                       }}
                       className={`w-full text-left px-4 py-3 hover:bg-slate-100 transition-colors border-b border-slate-100 last:border-b-0 ${
                         story.id === currentStoryId ? 'bg-slate-100' : ''
@@ -611,8 +635,10 @@ export function ScrumPoker({ onBack }: ScrumPokerProps) {
                       {story.description && (
                         <p className="text-[0.6875rem] text-slate-500 mt-1 line-clamp-1">{story.description}</p>
                       )}
-                      {story.points && story.points > 0 && (
-                        <p className="text-[0.6875rem] text-green-600 mt-1">✓ {story.points} pontos</p>
+                      {Number(story.points) > 0 ? (
+                        <p className="text-[0.6875rem] text-green-600 mt-1">✓ Estimada · {story.points} pontos</p>
+                      ) : (
+                        <p className="text-[0.6875rem] text-orange-600 mt-1">Por estimar</p>
                       )}
                     </button>
                   ))}
@@ -620,6 +646,28 @@ export function ScrumPoker({ onBack }: ScrumPokerProps) {
               </>
             )}
           </div>
+
+          {userStories.length > 1 && (
+            <div className="flex items-center justify-between mb-3 text-[0.8125rem]">
+              <button
+                onClick={() => previousStory && goToStory(previousStory.id)}
+                disabled={!previousStory}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="User story anterior"
+              >
+                <ChevronLeft size={16} /> Anterior
+              </button>
+              <span className="text-white/80">Story {currentIndex + 1} de {userStories.length}</span>
+              <button
+                onClick={() => nextStory && goToStory(nextStory.id)}
+                disabled={!nextStory}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="User story seguinte"
+              >
+                Seguinte <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
 
           <div className="flex items-center justify-between pt-3 border-t border-white/20">
             <div className="flex items-center gap-2 text-[0.8125rem]">
@@ -734,7 +782,7 @@ export function ScrumPoker({ onBack }: ScrumPokerProps) {
             <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[0.8125rem] text-slate-600 dark:text-slate-400">Estatísticas - Clique para salvar</p>
-                {currentStory?.points && currentStory.points > 0 && (
+                {Number(currentStory?.points) > 0 && (
                   <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
                     <CheckCircle size={12} className="text-green-600 dark:text-green-400" />
                     <span className="text-[0.6875rem] text-green-700 dark:text-green-300">

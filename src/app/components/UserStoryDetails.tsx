@@ -20,7 +20,7 @@ import { API_URL } from '../data/database';
 interface UserStoryDetailsProps {
   userType: 'formador' | 'formando';
   onBack: () => void;
-  onNavigate?: (screen: string) => void;
+  onNavigate?: (screen: string, params?: any) => void;
 }
 
 export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDetailsProps) {
@@ -457,7 +457,7 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
 
           {/* Tags compactas */}
           <div className="flex gap-2 flex-wrap items-center">
-            {story.points && Number(story.points) > 0 && (
+            {Number(story.points) > 0 && (
               <span className="bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-white text-[0.6875rem] font-medium">
                 {story.points} pts
               </span>
@@ -521,6 +521,17 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
             <p className="text-white/70 text-[0.6875rem]">
               ⏳ Aguardando votação no Scrum Poker
             </p>
+          )}
+
+          {/* Votar esta story no Scrum Poker (formandos) */}
+          {!isFormador && (
+            <button
+              onClick={() => onNavigate?.('scrumPoker', { from: 'userStoryDetails' })}
+              className="mt-4 w-full bg-white text-[#0a7da0] rounded-[12px] py-3 font-medium text-[0.9375rem] flex items-center justify-center gap-2 hover:bg-white/90 transition-colors"
+            >
+              <Target size={18} />
+              {hasEstimate ? 'Votar de novo no Scrum Poker' : 'Votar no Scrum Poker'}
+            </button>
           )}
         </div>
 

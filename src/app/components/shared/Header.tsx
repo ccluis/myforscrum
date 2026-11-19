@@ -59,7 +59,8 @@ export function Header({ onNavigate, title, showActions = true, onBack, onCreate
         {title && (
           <div className="flex items-center justify-between">
             {onBack ? (
-              <button 
+              <button
+                aria-label="Voltar" 
                 onClick={onBack}
                 className="bg-white/20 backdrop-blur-md p-2.5 rounded-full hover:bg-white/30 transition-all shadow-md border border-white/20 hover:scale-105 active:scale-95"
               >

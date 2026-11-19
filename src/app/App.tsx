@@ -232,7 +232,12 @@ function AppContent({
                 key={sprintBoardKey} 
               />;
             case 'scrumPoker':
-              return <ScrumPoker onBack={() => handleNavigate('sprintBoard')} />;
+              return (
+                <ScrumPoker
+                  sprintId={selectedSprintId}
+                  onBack={() => handleNavigate(navigationParams?.from === 'userStoryDetails' ? 'userStoryDetails' : 'sprintBoard')}
+                />
+              );
             case 'createSprint':
               return <CreateSprint onBack={() => handleNavigate('courseDetails', { tab: 'sprints' })} />;
             case 'createUserStory':

@@ -53,7 +53,11 @@ O **Início** do formador mostra, com filtros por **curso**, **equipa** e **spri
 Mostra a **minha equipa**, a **velocidade**, a **conclusão** do sprint atual, os **meus pontos** e os gráficos do sprint (pode escolher outro sprint na lista).
 
 ### 3.2 Estimar no Scrum Poker
-1. **Ver Sprints → escolher o sprint → Scrum Poker → Iniciar.**
+1. Há duas formas de chegar ao Scrum Poker:
+   - **a partir de uma user story:** no quadro, tocar na story e depois em **Votar no Scrum Poker**. A votação abre já nessa story;
+   - **a partir do quadro do sprint:** botão **Scrum Poker → Iniciar**. A votação abre na primeira story ainda por estimar.
+
+   Dentro do Scrum Poker, os botões **Anterior** e **Seguinte** (ou a lista no topo) mudam de story, sem apagar os votos já dados. Só aparecem as stories do sprint.
 2. Para cada user story, escolher um tamanho:
 
    | Cartão | Significado | Pontos |
