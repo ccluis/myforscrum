@@ -53,11 +53,9 @@ O **Início** do formador mostra, com filtros por **curso**, **equipa** e **spri
 Mostra a **minha equipa**, a **velocidade**, a **conclusão** do sprint atual, os **meus pontos** e os gráficos do sprint (pode escolher outro sprint na lista).
 
 ### 3.2 Estimar no Scrum Poker
-1. Há duas formas de chegar ao Scrum Poker:
-   - **diretamente na user story:** no quadro, tocar na story e escolher **S, M, L ou XL** no cartão da estimativa. O voto fica guardado logo e pode ser mudado. O link **Votar com a equipa no Scrum Poker** abre a votação de grupo já nessa story;
-   - **a partir do quadro do sprint:** botão **Scrum Poker → Iniciar**. A votação abre na primeira story ainda por estimar.
-
-   Dentro do Scrum Poker, os botões **Anterior** e **Seguinte** (ou a lista no topo) mudam de story, sem apagar os votos já dados. Só aparecem as stories do sprint.
+1. No quadro do sprint, tocar na user story. Na secção **Votação**:
+   - escolher **S, M, L ou XL** para votar logo (o voto pode ser mudado); ou
+   - carregar em **Votar no Scrum Poker com a equipa** para a votação de grupo, já nessa story. Dentro do Scrum Poker, **Anterior** e **Seguinte** mudam de story sem apagar votos.
 2. Para cada user story, escolher um tamanho:
 
    | Cartão | Significado | Pontos |
@@ -71,7 +69,7 @@ Mostra a **minha equipa**, a **velocidade**, a **conclusão** do sprint atual, o
 4. Se a equipa não concordar, **Nova Votação** apaga os votos dessa story e vota-se outra vez.
 
 ### 3.3 Trabalhar no quadro Kanban
-No sprint, **Ver Quadro Kanban**. Arrastar cada user story pelas colunas:
+No sprint, **Ver Quadro Kanban** (ecrã **Quadro do Sprint**). Arrastar cada user story pelas colunas:
 
 **Referencial → A Fazer → Em Curso → Concluído**
 

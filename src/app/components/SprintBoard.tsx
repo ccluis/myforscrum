@@ -748,7 +748,7 @@ function SprintBoardContent({ userType, onBack, onCreateStory, onNavigate, sprin
       {/* Header */}
       <Header
         onBack={onBack}
-        title={currentSprint ? currentSprint.name : 'Sprint Board'}
+        title="Quadro do Sprint"
         showProfile={false}
       />
 
@@ -760,8 +760,11 @@ function SprintBoardContent({ userType, onBack, onCreateStory, onNavigate, sprin
           style={{ backgroundColor: isFormador ? '#3b8433' : '#0a7da0' }}
         >
           <div className="flex items-center justify-between text-white">
-            <div className="flex items-center gap-2">
-              <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+            <div className="min-w-0">
+              {currentSprint && (
+                <p className="text-sm font-medium truncate mb-1">{currentSprint.name}</p>
+              )}
+              <div className="inline-block bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
                 <span className="text-sm font-medium">{Object.values(stories).flat().length} stories</span>
               </div>
             </div>
@@ -772,30 +775,11 @@ function SprintBoardContent({ userType, onBack, onCreateStory, onNavigate, sprin
           </div>
         </div>
 
-        {/* Scrum Poker Button - Apenas para Formandos */}
-        {!isFormador && (
-          <button
-            onClick={() => onNavigate?.('scrumPoker')}
-            className="w-full rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
-            style={{ backgroundColor: '#0a7da0' }}
-          >
-            <div className="flex items-center justify-between text-white">
-              <div className="text-left">
-                <h3 className="text-base font-medium mb-1">Scrum Poker</h3>
-                <p className="text-white/90 text-sm">Estimar user stories em equipa</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                <p className="text-sm">Iniciar →</p>
-              </div>
-            </div>
-          </button>
-        )}
-
         {/* Drag & Drop Help - Apenas para Formandos */}
         {!isFormador && (
           <div className="bg-blue-50 border-blue-200 border-2 rounded-xl p-3 text-center dark:bg-blue-900/30 dark:border-blue-700">
             <p className="text-xs text-blue-700 dark:text-blue-300">
-              💡 Arraste a sua user story entre as colunas para atualizar o estado
+              💡 Arraste a sua user story entre as colunas para atualizar o estado. Toque numa user story para a ver e votar.
             </p>
           </div>
         )}

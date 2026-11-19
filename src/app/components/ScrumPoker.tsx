@@ -86,7 +86,7 @@ export function ScrumPoker({ onBack, sprintId }: ScrumPokerProps) {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [currentStoryId, votesRevealed]);
+  }, [currentStoryId, votesRevealed, teamMembers.length]);
 
   const syncVotesFromBackend = async () => {
     if (!currentStoryId) return;

@@ -573,9 +573,9 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
             <p className="text-[0.6875rem] text-slate-500 mt-2">S = 3 · M = 5 · L = 8 · XL = 13 pontos</p>
             <button
               onClick={() => onNavigate?.('scrumPoker', { from: 'userStoryDetails' })}
-              className="mt-2 w-full text-[0.8125rem] text-[#0a7da0] underline-offset-2 hover:underline flex items-center justify-center gap-1"
+              className="mt-3 w-full bg-[#0a7da0] hover:bg-[#096d8a] text-white rounded-[12px] py-3 font-medium text-[0.9375rem] flex items-center justify-center gap-2 transition-colors"
             >
-              <Target size={14} /> Votar com a equipa no Scrum Poker
+              <Target size={18} /> Votar no Scrum Poker com a equipa
             </button>
           </div>
         )}
