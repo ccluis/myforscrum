@@ -26,7 +26,7 @@ interface UserStoryDetailsProps {
 export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDetailsProps) {
   const isFormador = userType === 'formador';
   const primaryColor = isFormador ? '#3b8433' : '#0a7da0';
-  const { selectedUserStory } = useApp();
+  const { selectedUserStory, loggedStudent, userProfile } = useApp();
 
   const [story, setStory] = useState<any>(null); // ✅ Começa com null em vez de selectedUserStory
   const [loading, setLoading] = useState(true); // ✅ Começa com true
@@ -122,6 +122,37 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
     loadStory();
     loadVotingHistory();
   }, [selectedUserStory?.id]);
+
+  // Voto do formando com sessão iniciada nesta story
+  const [savingVote, setSavingVote] = useState(false);
+  const myVote = votes.find((v: any) =>
+    (loggedStudent?.id && v.userId === loggedStudent.id) || (userProfile?.name && v.userName === userProfile.name)
+  )?.vote ?? null;
+
+  const castVote = async (size: string) => {
+    if (!selectedUserStory?.id || savingVote) return;
+    setSavingVote(true);
+    try {
+      const response = await fetch(`${API_URL}/votes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storyId: selectedUserStory.id,
+          userId: loggedStudent?.id || userProfile?.name,
+          userName: userProfile?.name || loggedStudent?.name,
+          vote: size,
+          votingSystem: 'tshirt',
+        }),
+      });
+      if (!response.ok) throw new Error('Erro ao guardar o voto');
+      toast.success(`Voto registado: ${size}`);
+      await loadVotingHistory();
+    } catch (error) {
+      toast.error('Não foi possível guardar o voto');
+    } finally {
+      setSavingVote(false);
+    }
+  };
 
   // Carregar histórico de votação
   const loadVotingHistory = async () => {
@@ -523,15 +554,41 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
             </p>
           )}
 
-          {/* Votar esta story no Scrum Poker (formandos) */}
+          {/* Votar diretamente nesta story (formandos) */}
           {!isFormador && (
-            <button
-              onClick={() => onNavigate?.('scrumPoker', { from: 'userStoryDetails' })}
-              className="mt-4 w-full bg-white text-[#0a7da0] rounded-[12px] py-3 font-medium text-[0.9375rem] flex items-center justify-center gap-2 hover:bg-white/90 transition-colors"
-            >
-              <Target size={18} />
-              {hasEstimate ? 'Votar de novo no Scrum Poker' : 'Votar no Scrum Poker'}
-            </button>
+            <div className="mt-4 bg-white rounded-[12px] p-3">
+              <p className="text-[0.8125rem] text-slate-700 mb-2" id="my-vote-label">
+                {myVote ? <>O seu voto: <strong>{myVote}</strong> · toque noutro tamanho para mudar</> : 'Qual é o tamanho desta user story? Toque para votar'}
+              </p>
+              <div className="grid grid-cols-4 gap-2" role="group" aria-labelledby="my-vote-label">
+                {['S', 'M', 'L', 'XL'].map((size) => {
+                  const selected = myVote === size;
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => castVote(size)}
+                      disabled={savingVote}
+                      aria-pressed={selected}
+                      aria-label={`Votar ${size}`}
+                      className={`py-3 rounded-[10px] border-2 text-[1.125rem] font-semibold transition-colors disabled:opacity-60 ${
+                        selected
+                          ? 'bg-[#0a7da0] border-[#0a7da0] text-white'
+                          : 'bg-white border-slate-200 text-slate-800 hover:border-[#0a7da0]'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[0.6875rem] text-slate-500 mt-2">S = 3 · M = 5 · L = 8 · XL = 13 pontos</p>
+              <button
+                onClick={() => onNavigate?.('scrumPoker', { from: 'userStoryDetails' })}
+                className="mt-2 w-full text-[0.8125rem] text-[#0a7da0] underline-offset-2 hover:underline flex items-center justify-center gap-1"
+              >
+                <Target size={14} /> Votar com a equipa no Scrum Poker
+              </button>
+            </div>
           )}
         </div>
 

@@ -54,7 +54,7 @@ Mostra a **minha equipa**, a **velocidade**, a **conclusão** do sprint atual, o
 
 ### 3.2 Estimar no Scrum Poker
 1. Há duas formas de chegar ao Scrum Poker:
-   - **a partir de uma user story:** no quadro, tocar na story e depois em **Votar no Scrum Poker**. A votação abre já nessa story;
+   - **diretamente na user story:** no quadro, tocar na story e escolher **S, M, L ou XL** no cartão da estimativa. O voto fica guardado logo e pode ser mudado. O link **Votar com a equipa no Scrum Poker** abre a votação de grupo já nessa story;
    - **a partir do quadro do sprint:** botão **Scrum Poker → Iniciar**. A votação abre na primeira story ainda por estimar.
 
    Dentro do Scrum Poker, os botões **Anterior** e **Seguinte** (ou a lista no topo) mudam de story, sem apagar os votos já dados. Só aparecem as stories do sprint.
