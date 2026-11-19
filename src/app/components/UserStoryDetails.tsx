@@ -511,7 +511,76 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
           <h2 className="text-[1rem] text-slate-800 font-medium">{story.title}</h2>
         </div>
 
-        {/* Estimativa de Pontos - Destaque */}
+        {/* 1. A user story: descrição e critérios */}
+        <div className="bg-white rounded-[16px] p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Target size={16} className="text-slate-600" />
+            <h3 className="text-[0.875rem] text-slate-800 font-medium">Descrição</h3>
+          </div>
+          <p className="text-[0.8125rem] text-slate-600 leading-relaxed">
+            {story.description || 'Sem descrição'}
+          </p>
+        </div>
+
+        {/* Critérios de Aceitação */}
+        {story.acceptanceCriteria && story.acceptanceCriteria.length > 0 && (
+          <div className="bg-white rounded-[16px] p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle size={16} className="text-slate-600" />
+              <h3 className="text-[0.875rem] text-slate-800 font-medium">Critérios de Aceitação</h3>
+            </div>
+            <div className="space-y-2">
+              {story.acceptanceCriteria.map((criteria: string, index: number) => (
+                <div key={index} className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full mt-2 flex-shrink-0" />
+                  <span className="text-[0.8125rem] text-slate-600 flex-1">
+                    {criteria}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 2. Votação (formandos) */}
+        {!isFormador && (
+          <div className="bg-white rounded-[16px] p-4 shadow-sm">
+            <h3 className="text-[0.875rem] text-slate-800 font-medium mb-2">Votação</h3>
+            <p className="text-[0.8125rem] text-slate-700 mb-2" id="my-vote-label">
+              {myVote ? <>O seu voto: <strong>{myVote}</strong> · toque noutro tamanho para mudar</> : 'Qual é o tamanho desta user story? Toque para votar'}
+            </p>
+            <div className="grid grid-cols-4 gap-2" role="group" aria-labelledby="my-vote-label">
+              {['S', 'M', 'L', 'XL'].map((size) => {
+                const selected = myVote === size;
+                return (
+                  <button
+                    key={size}
+                    onClick={() => castVote(size)}
+                    disabled={savingVote}
+                    aria-pressed={selected}
+                    aria-label={`Votar ${size}`}
+                    className={`py-3 rounded-[10px] border-2 text-[1.125rem] font-semibold transition-colors disabled:opacity-60 ${
+                      selected
+                        ? 'bg-[#0a7da0] border-[#0a7da0] text-white'
+                        : 'bg-white border-slate-200 text-slate-800 hover:border-[#0a7da0]'
+                    }`}
+                  >
+                    {size}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[0.6875rem] text-slate-500 mt-2">S = 3 · M = 5 · L = 8 · XL = 13 pontos</p>
+            <button
+              onClick={() => onNavigate?.('scrumPoker', { from: 'userStoryDetails' })}
+              className="mt-2 w-full text-[0.8125rem] text-[#0a7da0] underline-offset-2 hover:underline flex items-center justify-center gap-1"
+            >
+              <Target size={14} /> Votar com a equipa no Scrum Poker
+            </button>
+          </div>
+        )}
+
+        {/* 3. Resultados: estimativa e votos da equipa */}
         <div className={`rounded-[16px] p-4 shadow-lg ${ 
           hasEstimate
             ? `bg-gradient-to-br ${isFormador ? 'from-green-500 to-green-600' : 'from-[#0a7da0] to-[#096d8a]'}`
@@ -552,43 +621,6 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
             <p className="text-white/70 text-[0.6875rem]">
               ⏳ Aguardando votação no Scrum Poker
             </p>
-          )}
-
-          {/* Votar diretamente nesta story (formandos) */}
-          {!isFormador && (
-            <div className="mt-4 bg-white rounded-[12px] p-3">
-              <p className="text-[0.8125rem] text-slate-700 mb-2" id="my-vote-label">
-                {myVote ? <>O seu voto: <strong>{myVote}</strong> · toque noutro tamanho para mudar</> : 'Qual é o tamanho desta user story? Toque para votar'}
-              </p>
-              <div className="grid grid-cols-4 gap-2" role="group" aria-labelledby="my-vote-label">
-                {['S', 'M', 'L', 'XL'].map((size) => {
-                  const selected = myVote === size;
-                  return (
-                    <button
-                      key={size}
-                      onClick={() => castVote(size)}
-                      disabled={savingVote}
-                      aria-pressed={selected}
-                      aria-label={`Votar ${size}`}
-                      className={`py-3 rounded-[10px] border-2 text-[1.125rem] font-semibold transition-colors disabled:opacity-60 ${
-                        selected
-                          ? 'bg-[#0a7da0] border-[#0a7da0] text-white'
-                          : 'bg-white border-slate-200 text-slate-800 hover:border-[#0a7da0]'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-[0.6875rem] text-slate-500 mt-2">S = 3 · M = 5 · L = 8 · XL = 13 pontos</p>
-              <button
-                onClick={() => onNavigate?.('scrumPoker', { from: 'userStoryDetails' })}
-                className="mt-2 w-full text-[0.8125rem] text-[#0a7da0] underline-offset-2 hover:underline flex items-center justify-center gap-1"
-              >
-                <Target size={14} /> Votar com a equipa no Scrum Poker
-              </button>
-            </div>
           )}
         </div>
 
@@ -675,37 +707,6 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
               statusOptions.find(s => s.id === status)?.color || 'bg-slate-100 text-slate-700'
             }`}>
               {statusOptions.find(s => s.id === status)?.label || 'Referencial'}
-            </div>
-          </div>
-        )}
-
-        {/* Descrição */}
-        <div className="bg-white rounded-[16px] p-4 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <Target size={16} className="text-slate-600" />
-            <h3 className="text-[0.875rem] text-slate-800 font-medium">Descrição</h3>
-          </div>
-          <p className="text-[0.8125rem] text-slate-600 leading-relaxed">
-            {story.description || 'Sem descrição'}
-          </p>
-        </div>
-
-        {/* Critérios de Aceitação */}
-        {story.acceptanceCriteria && story.acceptanceCriteria.length > 0 && (
-          <div className="bg-white rounded-[16px] p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <CheckCircle size={16} className="text-slate-600" />
-              <h3 className="text-[0.875rem] text-slate-800 font-medium">Critérios de Aceitação</h3>
-            </div>
-            <div className="space-y-2">
-              {story.acceptanceCriteria.map((criteria: string, index: number) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full mt-2 flex-shrink-0" />
-                  <span className="text-[0.8125rem] text-slate-600 flex-1">
-                    {criteria}
-                  </span>
-                </div>
-              ))}
             </div>
           </div>
         )}
