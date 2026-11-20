@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { User, AlertCircle, CheckCircle, GraduationCap, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from './components/ui/sonner';
-import { API_URL } from './data/database';
+import { API_URL, setVoteScope } from './data/database';
 
 // Context and Components
 import { AppProvider, useApp } from './context/AppContext';
@@ -318,6 +318,15 @@ export default function App() {
   const [createTeamParams, setCreateTeamParams] = useState<{ courseId: string; courseName: string } | null>(null); // NOVO: Guardar params do createTeam
   const [navigationParams, setNavigationParams] = useState<any>({}); // NOVO: Guardar params de navegação
   const [ltiTeacher, setLtiTeacher] = useState<{ name: string; email: string } | null>(null); // Formador vindo do Moodle
+
+  // Votos visíveis: o formando só vê os da sua equipa; o formador vê todos
+  useEffect(() => {
+    if (isLoggedIn && userType === 'formando' && loggedStudentData?.id) {
+      setVoteScope({ studentId: loggedStudentData.id, name: loggedStudentData.name, teamId: loggedStudentData.teamId || '' });
+    } else {
+      setVoteScope(null);
+    }
+  }, [isLoggedIn, userType, loggedStudentData]);
 
   // Entrada automática a partir do Moodle (LTI 1.3): /?lti=<dados>
   useEffect(() => {

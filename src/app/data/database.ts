@@ -137,9 +137,43 @@ function sprintOut(r: Json) {
   return s;
 }
 
-function storyOut(r: Json) {
+// ---------------------------------------------------------------- votos visíveis
+
+/**
+ * Quem está a ver os votos. Um formando só vê os votos da sua equipa
+ * (ou só o seu, se ainda não tiver equipa); o formador vê todos.
+ */
+interface VoteScope { studentId: string; name?: string; teamId?: string }
+let voteScope: VoteScope | null = null;
+let votersCache: { key: string; at: number; ids: Set<string>; names: Set<string> } | null = null;
+
+export function setVoteScope(scope: VoteScope | null) {
+  voteScope = scope && scope.studentId ? scope : null;
+  votersCache = null;
+}
+
+async function visibleVoters(): Promise<{ ids: Set<string>; names: Set<string> } | null> {
+  if (!voteScope) return null;
+  const key = `${voteScope.studentId}|${voteScope.teamId || ''}`;
+  if (votersCache && votersCache.key === key && Date.now() - votersCache.at < 30000) return votersCache;
+  const ids = new Set<string>([voteScope.studentId]);
+  const names = new Set<string>(voteScope.name ? [voteScope.name] : []);
+  if (voteScope.teamId) {
+    const team = await sel(`students?select=id,name&team_id=${eq(voteScope.teamId)}`);
+    team.forEach((m: Json) => { ids.add(m.id); if (m.name) names.add(m.name); });
+  }
+  votersCache = { key, at: Date.now(), ids, names };
+  return votersCache;
+}
+
+function onlyVisible(votes: Json[], voters: { ids: Set<string>; names: Set<string> } | null) {
+  if (!voters) return votes;
+  return votes.filter((v) => voters.ids.has(v.user_id) || (!!v.user_name && voters.names.has(v.user_name)));
+}
+
+function storyOut(r: Json, voters: { ids: Set<string>; names: Set<string> } | null = null) {
   const s = fromRow('user_stories', r);
-  s.votes = (r.votes || []).map(voteOut);
+  s.votes = onlyVisible(r.votes || [], voters).map(voteOut);
   return s;
 }
 
@@ -271,7 +305,8 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
         let f = '';
         if (q.get('sprintId')) f += `&sprint_id=${eq(q.get('sprintId')!)}`;
         if (q.get('courseId')) f += `&course_id=${eq(q.get('courseId')!)}`;
-        return ok({ stories: (await sel(`user_stories?${STORY_SEL}${f}&${ORDER}`)).map(storyOut) });
+        const voters = await visibleVoters();
+        return ok({ stories: (await sel(`user_stories?${STORY_SEL}${f}&${ORDER}`)).map((r: Json) => storyOut(r, voters)) });
       }
       if (!id && method === 'POST') {
         if (!body.title?.trim()) return fail(400, 'Título é obrigatório');
@@ -279,11 +314,11 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
         const sid = newId('story_');
         await ins('user_stories', { id: sid, ...toRow('user_stories', { priority: 'medium', status: 'backlog', points: 0, ...body }) });
         if (Array.isArray(body.votes)) await replaceVotes(sid, body.votes);
-        return ok({ userStory: storyOut(await one('user_stories', sid, STORY_SEL)) }, 201);
+        return ok({ userStory: storyOut(await one('user_stories', sid, STORY_SEL), await visibleVoters()) }, 201);
       }
       if (id && method === 'GET') {
         const r = await one('user_stories', id, STORY_SEL);
-        return r ? ok({ story: storyOut(r) }) : fail(404, 'User story não encontrada');
+        return r ? ok({ story: storyOut(r, await visibleVoters()) }) : fail(404, 'User story não encontrada');
       }
       if (id && method === 'PUT') {
         const prev = await one('user_stories', id);
@@ -292,7 +327,7 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
         if (!patch.courseId) delete patch.courseId;
         await upd('user_stories', `id=${eq(id)}`, toRow('user_stories', patch, prev.extra));
         if (Array.isArray(body.votes)) await replaceVotes(id, body.votes);
-        return ok({ story: storyOut(await one('user_stories', id, STORY_SEL)) });
+        return ok({ story: storyOut(await one('user_stories', id, STORY_SEL), await visibleVoters()) });
       }
       if (id && method === 'DELETE') {
         const rows = await del('user_stories', `id=${eq(id)}`);
@@ -371,7 +406,7 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
       const storyId = q.get('storyId') || body.storyId || id;
       if (!storyId) return fail(400, 'storyId é obrigatório');
       if (method === 'GET')
-        return ok({ votes: (await sel(`votes?select=*&story_id=${eq(storyId)}&order=created_at`)).map(voteOut) });
+        return ok({ votes: onlyVisible(await sel(`votes?select=*&story_id=${eq(storyId)}&order=created_at`), await visibleVoters()).map(voteOut) });
       if (method === 'POST') {
         const userId = String(body.userId || body.userName || '');
         if (!userId) return fail(400, 'userId é obrigatório');
@@ -381,7 +416,10 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
         return ok({});
       }
       if (method === 'DELETE') {
-        await del('votes', `story_id=${eq(storyId)}`);
+        // Um formando só reinicia os votos da sua equipa
+        const voters = await visibleVoters();
+        const who = voters ? `&user_id=in.(${[...voters.ids].map((i) => `"${encodeURIComponent(i)}"`).join(',')})` : '';
+        await del('votes', `story_id=${eq(storyId)}${who}`);
         return ok({});
       }
       break;
