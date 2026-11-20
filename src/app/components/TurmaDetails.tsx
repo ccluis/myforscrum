@@ -9,7 +9,9 @@ import {
   Award,
   TrendingUp,
   X,
-  Layers
+  Layers,
+  ChevronRight,
+  FileText
 } from 'lucide-react';
 import { toast } from "sonner";
 import { Header } from './shared/Header';
@@ -31,6 +33,8 @@ import {
   SelectValue,
 } from "./ui/select";
 import { API_URL } from '../data/database';
+import { useApp } from '../context/AppContext';
+import { storyPoints, voteToPoints, sortSprints } from '../data/sprintMetrics';
 
 interface Sprint {
   id: string;
@@ -39,7 +43,28 @@ interface Sprint {
   progress: number;
   storiesCount: number;
   teamId?: string;
+  courseId?: string;
+  startDate?: string;
+  endDate?: string;
 }
+
+interface Story {
+  id: string;
+  title: string;
+  status?: string;
+  team?: string;
+  sprintId?: string;
+  courseId?: string;
+  points?: number | string;
+  votes?: { userId?: string; userName?: string; vote?: unknown }[];
+}
+
+const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
+  backlog: { label: 'Referencial', cls: 'bg-slate-100 text-slate-700 dark:bg-slate-600 dark:text-slate-200' },
+  todo: { label: 'A Fazer', cls: 'bg-blue-100 text-blue-700' },
+  inProgress: { label: 'Em Curso', cls: 'bg-yellow-100 text-yellow-700' },
+  done: { label: 'Concluído', cls: 'bg-green-100 text-green-700' },
+};
 
 // Interface para definir a estrutura de uma equipa
 interface Team {
@@ -49,7 +74,9 @@ interface Team {
   members?: Member[];
   performance?: number;
   completedStories?: number;
+  totalStories?: number;
   sprints?: Sprint[];
+  stories?: Story[];
 }
 
 // Interface para definir a estrutura de um membro da equipa
@@ -67,7 +94,7 @@ interface Member {
 interface TurmaDetailsProps {
   onBack: () => void;
   courseName?: string; // Nome do curso (opcional, com fallback)
-  onNavigate?: (screen: string) => void;
+  onNavigate?: (screen: string, params?: any) => void;
   teamId?: string | null;
   courseId?: string | null;
 }
@@ -76,6 +103,8 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
   const [teams, setTeams] = useState<Team[]>([]);
   const [students, setStudents] = useState<Member[]>([]);
   const [sprints, setSprints] = useState<Sprint[]>([]);
+  const [stories, setStories] = useState<Story[]>([]);
+  const { setSelectedUserStory, setPreviousScreen } = useApp();
   const [loading, setLoading] = useState(true);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showEditTeamModal, setShowEditTeamModal] = useState(false);
@@ -154,6 +183,12 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
           setSprints(sprintsData.sprints);
         }
       }
+
+      // User stories (com os votos)
+      const storiesData = await fetch(`${API_URL}/stories`).then((r) => r.json());
+      if (storiesData.success && Array.isArray(storiesData.stories)) {
+        setStories(storiesData.stories);
+      }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
       toast.error('Erro ao carregar dados');
@@ -181,7 +216,8 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
       case 'active': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300';
-      case 'planned': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'planned':
+      case 'planning': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
       default: return 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300';
     }
   };
@@ -190,7 +226,8 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
     switch (status) {
       case 'completed': return 'Concluído';
       case 'active': return 'Ativo';
-      case 'planned': return 'Planeado';
+      case 'planned':
+      case 'planning': return 'Planeado';
       default: return status;
     }
   };
@@ -289,22 +326,48 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
   // Associar membros às equipas
   const teamsWithMembers = displayTeams.map(team => {
     const teamMembers = students.filter(s => s.teamId === team.id);
-    const teamSprints = sprints.filter(s => s.teamId === team.id);
-    
-    // Calcular performance média dos membros
-    const avgPerformance = teamMembers.length > 0
-      ? Math.round(teamMembers.reduce((sum, m) => sum + (m.performance || 0), 0) / teamMembers.length)
-      : 0;
-    
+    // Sprints do curso que são desta equipa ou de todas as equipas
+    const teamSprints = sortSprints(
+      sprints.filter(s => s.courseId === team.courseId && (!s.teamId || s.teamId === team.id))
+    );
+    const sprintIds = new Set(teamSprints.map(s => s.id));
+    // User stories desta equipa (ou sem equipa) nos sprints da equipa
+    const teamStories = stories.filter(st =>
+      st.courseId === team.courseId &&
+      (!st.team || st.team === team.name) &&
+      (!st.sprintId || sprintIds.has(st.sprintId))
+    );
+    const done = teamStories.filter(st => st.status === 'done').length;
+
     return {
       ...team,
       members: teamMembers,
       sprints: teamSprints,
-      performance: avgPerformance,
-      completedStories: 0 // TODO: calcular baseado nas stories
+      stories: teamStories,
+      performance: teamStories.length ? Math.round((done / teamStories.length) * 100) : 0,
+      completedStories: done,
+      totalStories: teamStories.length,
     };
   });
   
+  // Estimativa da equipa: média dos votos dos seus membros; senão, os pontos da story
+  const teamEstimate = (story: Story, members: Member[]) => {
+    const ids = new Set(members.map(m => m.id));
+    const names = new Set(members.map(m => m.name));
+    const pts = (story.votes || [])
+      .filter(v => (v.userId && ids.has(v.userId)) || (v.userName && names.has(v.userName)))
+      .map(v => voteToPoints(v.vote))
+      .filter((n): n is number => n != null);
+    if (pts.length) return { points: Math.round(pts.reduce((a, b) => a + b, 0) / pts.length), votes: pts.length };
+    return { points: storyPoints(story), votes: 0 };
+  };
+
+  const openStory = (story: Story) => {
+    setSelectedUserStory(story as any);
+    setPreviousScreen('turmaDetails');
+    onNavigate?.('userStoryDetails');
+  };
+
   // Obter dados da equipa selecionada para métricas
   const selectedTeam = teamId ? teamsWithMembers.find(t => t.id === teamId) : null;
 
@@ -338,7 +401,7 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
               {/* Barra de progresso da equipa */}
               <div className="mb-3">
                 <div className="flex items-center justify-between text-[0.6875rem] mb-1.5">
-                  <span className="text-white/80">Performance Geral</span>
+                  <span className="text-white/80">Conclusão das user stories</span>
                   <span className="text-white font-medium">{selectedTeam.performance}%</span>
                 </div>
                 <div className="w-full bg-white/20 rounded-full h-2.5">
@@ -353,7 +416,7 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
               <div className="grid grid-cols-3 gap-2.5 mt-3 pt-3 border-t border-white/20">
                 <div>
                   <p className="text-white/70 text-[0.625rem] mb-0.5">Stories</p>
-                  <p className="text-[1rem]">{selectedTeam.completedStories}</p>
+                  <p className="text-[1rem]">{selectedTeam.completedStories}/{selectedTeam.totalStories}</p>
                   <p className="text-white/70 text-[0.5625rem]">Concluídas</p>
                 </div>
                 <div>
@@ -362,12 +425,8 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
                   <p className="text-white/70 text-[0.5625rem]">Total</p>
                 </div>
                 <div>
-                  <p className="text-white/70 text-[0.625rem] mb-0.5">Média</p>
-                  <p className="text-[1rem]">
-                    {selectedTeam.members && selectedTeam.members.length > 0
-                      ? Math.round(selectedTeam.members.reduce((sum, m) => sum + (m.performance || 0), 0) / selectedTeam.members.length)
-                      : 0}%
-                  </p>
+                  <p className="text-white/70 text-[0.625rem] mb-0.5">Equipa</p>
+                  <p className="text-[1rem]">{selectedTeam.members?.length || 0}</p>
                   <p className="text-white/70 text-[0.5625rem]">Membros</p>
                 </div>
               </div>
@@ -446,7 +505,7 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
                 </div>
                 <div>
                   <p className="text-[0.6875rem] text-slate-500 mb-1 dark:text-slate-400">Stories Concluídas</p>
-                  <p className="text-[1rem] text-slate-800 dark:text-slate-100">{team.completedStories}</p>
+                  <p className="text-[1rem] text-slate-800 dark:text-slate-100">{team.completedStories}/{team.totalStories}</p>
                 </div>
               </div>
 
@@ -472,46 +531,80 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
                       <span className={`${getRoleColor(member.role || 'Formando')} px-2 py-1 rounded-[6px] text-[0.625rem]`}>
                         {member.role || 'Formando'}
                       </span>
-                      <span className={`text-[0.75rem] ${getPerformanceColor(member.performance || 0)}`}>
-                        {member.performance || 0}%
-                      </span>
                     </div>
                   </button>
                 ))}
               </div>
               
-              {/* Team Sprints */}
+              {/* Sprints e user stories da equipa */}
               <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                <p className="text-[0.75rem] text-slate-600 mb-2 dark:text-slate-400">Sprints da Equipa:</p>
-                <div className="space-y-2">
-                  {team.sprints?.map((sprint) => (
-                    <div 
-                      key={sprint.id}
-                      className="bg-slate-50 p-3 rounded-[12px] dark:bg-slate-700"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Layers size={14} className="text-slate-400 dark:text-slate-300" />
-                          <span className="text-[0.8125rem] font-medium text-slate-800 dark:text-slate-200">{sprint.name}</span>
-                        </div>
-                        <span className={`${getStatusColor(sprint.status)} px-2 py-0.5 rounded-[6px] text-[0.625rem]`}>
-                          {getStatusLabel(sprint.status)}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-[0.6875rem] text-slate-500 mb-2 dark:text-slate-400">
-                        <span>{sprint.storiesCount} stories</span>
-                        <span>{sprint.progress}% concluído</span>
-                      </div>
+                <p className="text-[0.75rem] text-slate-600 mb-2 dark:text-slate-400">Sprints e user stories:</p>
+                {team.sprints.length === 0 && (
+                  <p className="text-[0.8125rem] text-slate-500 py-2">Ainda não há sprints neste curso.</p>
+                )}
+                <div className="space-y-3">
+                  {team.sprints.map((sprint) => {
+                    const sprintStories = team.stories.filter((st) => st.sprintId === sprint.id);
+                    const doneCount = sprintStories.filter((st) => st.status === 'done').length;
+                    const progress = sprintStories.length ? Math.round((doneCount / sprintStories.length) * 100) : 0;
+                    return (
+                      <div key={sprint.id} className="bg-slate-50 p-3 rounded-[12px] dark:bg-slate-700">
+                        <button
+                          onClick={() => onNavigate?.('sprintBoard', { sprintId: sprint.id, sprintName: sprint.name, teamId: team.id })}
+                          className="w-full text-left"
+                          aria-label={`Abrir o quadro do ${sprint.name}`}
+                        >
+                          <div className="flex items-center justify-between mb-2 gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Layers size={14} className="text-slate-400 flex-shrink-0 dark:text-slate-300" />
+                              <span className="text-[0.875rem] font-medium text-slate-800 truncate dark:text-slate-200">{sprint.name}</span>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <span className={`${getStatusColor(sprint.status)} px-2 py-0.5 rounded-[6px] text-[0.625rem]`}>
+                                {getStatusLabel(sprint.status)}
+                              </span>
+                              <ChevronRight size={16} className="text-slate-400" />
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 text-[0.6875rem] text-slate-500 mb-2 dark:text-slate-400">
+                            <span>{sprintStories.length} user stories</span>
+                            <span>{progress}% concluído</span>
+                          </div>
+                          <div className="w-full bg-slate-200 rounded-full h-1.5 dark:bg-slate-600">
+                            <div className="bg-[#3b8433] h-1.5 rounded-full transition-all" style={{ width: `${progress}%` }} />
+                          </div>
+                        </button>
 
-                      <div className="w-full bg-slate-200 rounded-full h-1.5 dark:bg-slate-600">
-                        <div 
-                          className="bg-[#3b8433] h-1.5 rounded-full transition-all" 
-                          style={{ width: `${sprint.progress}%` }}
-                        />
+                        {sprintStories.length > 0 && (
+                          <ul className="mt-3 space-y-1.5">
+                            {sprintStories.map((st) => {
+                              const est = teamEstimate(st, team.members);
+                              const stat = STATUS_LABEL[st.status || 'backlog'] || STATUS_LABEL.backlog;
+                              return (
+                                <li key={st.id}>
+                                  <button
+                                    onClick={() => openStory(st)}
+                                    className="w-full flex items-center justify-between gap-2 bg-white rounded-[10px] p-2.5 text-left hover:ring-2 hover:ring-[#3b8433] dark:bg-slate-800"
+                                  >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <FileText size={14} className="text-[#3b8433] flex-shrink-0" />
+                                      <span className="text-[0.8125rem] text-slate-800 truncate dark:text-slate-100">{st.title}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                      <span className={`${stat.cls} px-2 py-0.5 rounded-[6px] text-[0.625rem]`}>{stat.label}</span>
+                                      <span className="text-[0.6875rem] text-slate-600 dark:text-slate-300" title={est.votes ? `${est.votes} votos da equipa` : 'Sem votos da equipa'}>
+                                        {est.points ? `${est.points} pts` : 'Por estimar'}
+                                      </span>
+                                    </div>
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
