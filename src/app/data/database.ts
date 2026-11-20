@@ -61,16 +61,18 @@ const FIELDS: Record<string, Record<string, string>> = {
   user_stories: { title: 'title', description: 'description', priority: 'priority', team: 'team',
                   acceptanceCriteria: 'acceptance_criteria', sprintId: 'sprint_id',
                   courseId: 'course_id', status: 'status', points: 'points' },
-  alerts: { type: 'type', title: 'title', message: 'message', courseId: 'course_id', createdBy: 'created_by' },
+  alerts: { type: 'type', title: 'title', message: 'message', courseId: 'course_id', createdBy: 'created_by', trainerId: 'trainer_id' },
   messages: { formandoId: 'student_id', formandoName: 'student_name', formadorName: 'trainer_name',
-              title: 'title', message: 'message', sentBy: 'sent_by', isRead: 'is_read' },
+              formadorId: 'trainer_id', title: 'title', message: 'message', sentBy: 'sent_by', isRead: 'is_read' },
+  trainers: { name: 'name', email: 'email' },
 };
 /** campos calculados ou geridos pela base de dados: nunca guardados */
 const DERIVED = new Set(['id', 'createdAt', 'updatedAt', 'students', 'teams', 'sprints', 'stories',
   'courseName', 'userStoryCount', 'totalStoryPoints', 'completionRate', 'votes', 'storyIds']);
 const NULLABLE_FK = new Set(['team_id', 'sprint_id', 'course_id']);
 const NO_EMPTY_STRING = new Set(['alerts', 'messages']);
-const HAS_EXTRA = new Set(['courses', 'teams', 'students', 'sprints', 'user_stories']);
+NULLABLE_FK.add('trainer_id');
+const HAS_EXTRA = new Set(['courses', 'teams', 'students', 'sprints', 'user_stories', 'trainers']);
 
 function toRow(table: string, body: Json, prevExtra: Json = {}): Json {
   const map = FIELDS[table];
@@ -135,6 +137,42 @@ function sprintOut(r: Json) {
   s.totalStoryPoints = stories.reduce((t, x) => t + (Number(x.points) || 0), 0);
   s.completionRate = stories.length ? Math.round((done / stories.length) * 100) : 0;
   return s;
+}
+
+// ---------------------------------------------------------------- formador com sessão
+
+/**
+ * Formador com sessão iniciada: só vê os cursos em que está (tabela course_trainers)
+ * e o que deles depende. Sem formador (formandos), não há este filtro.
+ */
+interface TrainerScope { id: string; name: string }
+let trainerScope: TrainerScope | null = null;
+let trainerCoursesCache: { id: string; at: number; ids: string[] } | null = null;
+
+/** Formador com sessão iniciada (ou null). */
+export const currentTrainer = () => trainerScope;
+
+export function setTrainerScope(scope: TrainerScope | null) {
+  trainerScope = scope && scope.id ? scope : null;
+  trainerCoursesCache = null;
+}
+
+async function myCourseIds(): Promise<string[] | null> {
+  if (!trainerScope) return null;
+  const c = trainerCoursesCache;
+  if (c && c.id === trainerScope.id && Date.now() - c.at < 15000) return c.ids;
+  const rows = await sel(`course_trainers?select=course_id&trainer_id=${eq(trainerScope.id)}`);
+  const ids = rows.map((r: Json) => r.course_id);
+  trainerCoursesCache = { id: trainerScope.id, at: Date.now(), ids };
+  return ids;
+}
+
+const inList = (ids: string[]) => `(${(ids.length ? ids : ['__nenhum__']).map((i) => `"${encodeURIComponent(i)}"`).join(',')})`;
+
+/** Filtro "só os meus cursos" para uma coluna (vazio se não houver formador com sessão). */
+async function myCoursesFilter(col = 'course_id'): Promise<string> {
+  const ids = await myCourseIds();
+  return ids ? `&${col}=in.${inList(ids)}` : '';
 }
 
 // ---------------------------------------------------------------- votos visíveis
@@ -220,7 +258,7 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
     // ---- cursos
     case 'courses': {
       if (!id && method === 'GET')
-        return ok({ courses: (await sel(`courses?${COURSE_SEL}&${ORDER}`)).map(courseOut) });
+        return ok({ courses: (await sel(`courses?${COURSE_SEL}${await myCoursesFilter('id')}&${ORDER}`)).map(courseOut) });
       if (!id && method === 'POST') {
         if (!body.name?.trim()) return fail(400, 'Nome do curso é obrigatório');
         const list = (body.studentsList || []).filter((e: string) => e?.trim());
@@ -229,6 +267,11 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
           ...body, studentsList: list,
         });
         const [r] = await ins('courses', { id: Date.now().toString(), ...row });
+        // Quem cria o curso fica como seu formador
+        if (trainerScope) {
+          await ins('course_trainers', { course_id: r.id, trainer_id: trainerScope.id }, 'return=minimal');
+          trainerCoursesCache = null;
+        }
         return ok({ course: courseOut(r) }, 201);
       }
       if (id && method === 'GET') {
@@ -251,7 +294,7 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
     // ---- sprints
     case 'sprints': {
       if (!id && method === 'GET') {
-        const f = q.get('courseId') ? `&course_id=${eq(q.get('courseId')!)}` : '';
+        const f = (q.get('courseId') ? `&course_id=${eq(q.get('courseId')!)}` : '') + await myCoursesFilter();
         return ok({ sprints: (await sel(`sprints?${SPRINT_SEL}${f}&${ORDER}`)).map(sprintOut) });
       }
       if (!id && method === 'POST') {
@@ -305,6 +348,7 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
         let f = '';
         if (q.get('sprintId')) f += `&sprint_id=${eq(q.get('sprintId')!)}`;
         if (q.get('courseId')) f += `&course_id=${eq(q.get('courseId')!)}`;
+        f += await myCoursesFilter();
         const voters = await visibleVoters();
         return ok({ stories: (await sel(`user_stories?${STORY_SEL}${f}&${ORDER}`)).map((r: Json) => storyOut(r, voters)) });
       }
@@ -339,7 +383,7 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
     // ---- equipas
     case 'teams': {
       if (!id && method === 'GET') {
-        const f = q.get('courseId') ? `&course_id=${eq(q.get('courseId')!)}` : '';
+        const f = (q.get('courseId') ? `&course_id=${eq(q.get('courseId')!)}` : '') + await myCoursesFilter();
         return ok({ teams: (await sel(`teams?select=*${f}&${ORDER}`)).map((r: Json) => fromRow('teams', r)) });
       }
       if (!id && method === 'POST') {
@@ -371,7 +415,7 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
     // ---- formandos
     case 'students': {
       if (!id && method === 'GET') {
-        const f = q.get('courseId') ? `&course_id=${eq(q.get('courseId')!)}` : '';
+        const f = (q.get('courseId') ? `&course_id=${eq(q.get('courseId')!)}` : '') + await myCoursesFilter();
         return ok({ students: (await sel(`students?select=*${f}&${ORDER}`)).map((r: Json) => fromRow('students', r)) });
       }
       if ((!id && method === 'POST') || (id && sub === 'sync' && method === 'POST')) {
@@ -428,13 +472,17 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
     // ---- alertas
     case 'alerts': {
       if (!id && method === 'GET') {
-        const f = q.get('courseId') ? `&or=(course_id.is.null,course_id.eq.${encodeURIComponent(q.get('courseId')!)})` : '';
+        let f = q.get('courseId') ? `&or=(course_id.is.null,course_id.eq.${encodeURIComponent(q.get('courseId')!)})` : '';
+        // Formador: alertas dos seus cursos e alertas gerais que ele próprio criou
+        const mine = await myCourseIds();
+        if (mine && trainerScope) f = `&or=(course_id.in.${inList(mine)},and(course_id.is.null,trainer_id.eq.${encodeURIComponent(trainerScope.id)}))`;
         return ok({ alerts: (await sel(`alerts?${ALERT_SEL}${f}&${ORDER}`)).map(alertOut) });
       }
       if (!id && method === 'POST') {
         if (!body.title?.trim()) return fail(400, 'Título é obrigatório');
         const aid = newId('alert_');
-        await ins('alerts', { id: aid, ...toRow('alerts', { type: 'warning', createdBy: 'Formador', ...body }) });
+        const author = trainerScope ? { createdBy: trainerScope.name, trainerId: trainerScope.id } : {};
+        await ins('alerts', { id: aid, ...toRow('alerts', { type: 'warning', createdBy: 'Formador', ...body, ...author }) });
         return ok({ alert: alertOut(await one('alerts', aid, ALERT_SEL)) }, 201);
       }
       if (id && method === 'PUT') {
@@ -471,12 +519,15 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
         let f = '';
         if (q.get('formandoId')) f += `&student_id=${eq(q.get('formandoId')!)}`;
         if (q.get('sentBy')) f += `&sent_by=${eq(q.get('sentBy')!)}`;
+        // Cada formador só vê as suas conversas
+        if (trainerScope) f += `&trainer_id=${eq(trainerScope.id)}`;
         return ok({ messages: (await sel(`messages?select=*${f}&${ORDER}`)).map((r: Json) => fromRow('messages', r)) });
       }
       if (!id && method === 'POST') {
         if (!body.title?.trim() || !body.message?.trim()) return fail(400, 'Título e mensagem são obrigatórios');
         if (!body.formandoId) return fail(400, 'Formando é obrigatório');
-        const [r] = await ins('messages', { id: newId('msg_'), ...toRow('messages', { isRead: false, sentBy: 'formador', ...body }) });
+        const author = trainerScope ? { formadorId: trainerScope.id, formadorName: trainerScope.name } : {};
+        const [r] = await ins('messages', { id: newId('msg_'), ...toRow('messages', { isRead: false, sentBy: 'formador', ...body, ...author }) });
         return ok({ message: fromRow('messages', r) }, 201);
       }
       if (id && method === 'PUT') {
@@ -492,19 +543,73 @@ async function route(method: string, parts: string[], q: URLSearchParams, body: 
       break;
     }
 
+    // ---- formadores
+    case 'trainers': {
+      if (!id && method === 'GET') {
+        // ?courseId= → formadores desse curso; ?name= → procurar pelo nome (entrada)
+        if (q.get('courseId')) {
+          const rows = await sel(`course_trainers?select=trainers(*)&course_id=${eq(q.get('courseId')!)}`);
+          return ok({ trainers: rows.map((r: Json) => r.trainers).filter(Boolean).map((t: Json) => fromRow('trainers', t)) });
+        }
+        if (q.get('name')) {
+          const rows = await sel(`trainers?select=*&name=ilike.${encodeURIComponent(q.get('name')!.trim())}`);
+          return ok({ trainers: rows.map((t: Json) => fromRow('trainers', t)) });
+        }
+        return ok({ trainers: (await sel(`trainers?select=*&order=name`)).map((t: Json) => fromRow('trainers', t)) });
+      }
+      if (!id && method === 'POST') {
+        if (!body.name?.trim()) return fail(400, 'Nome do formador é obrigatório');
+        const existing = await sel(`trainers?select=*&name=ilike.${encodeURIComponent(body.name.trim())}`);
+        if (existing.length) return ok({ trainer: fromRow('trainers', existing[0]), existing: true });
+        const [r] = await ins('trainers', { id: body.id || newId('trainer_'), ...toRow('trainers', body) },
+          'return=representation,resolution=merge-duplicates');
+        return ok({ trainer: fromRow('trainers', r) }, 201);
+      }
+      if (id && method === 'PUT') {
+        const prev = await one('trainers', id);
+        if (!prev) return fail(404, 'Formador não encontrado');
+        const [r] = await upd('trainers', `id=${eq(id)}`, toRow('trainers', body, prev.extra));
+        return ok({ trainer: fromRow('trainers', r) });
+      }
+      break;
+    }
+
+    // ---- formadores de cada curso
+    case 'course-trainers': {
+      const courseId = body.courseId || q.get('courseId');
+      const trainerId = body.trainerId || q.get('trainerId');
+      if (!courseId || !trainerId) return fail(400, 'courseId e trainerId são obrigatórios');
+      if (method === 'POST') {
+        await ins('course_trainers?on_conflict=course_id,trainer_id', { course_id: courseId, trainer_id: trainerId },
+          'return=minimal,resolution=ignore-duplicates');
+        trainerCoursesCache = null;
+        return ok({});
+      }
+      if (method === 'DELETE') {
+        const left = await sel(`course_trainers?select=trainer_id&course_id=${eq(courseId)}`);
+        if (left.length <= 1) return fail(400, 'O curso tem de ficar com pelo menos um formador');
+        await del('course_trainers', `course_id=${eq(courseId)}&trainer_id=${eq(trainerId)}`);
+        trainerCoursesCache = null;
+        return ok({});
+      }
+      break;
+    }
+
     // ---- contadores de não lidos (mensagens e alertas)
     case 'unread': {
       const userType = q.get('userType');
       const studentId = q.get('studentId') || '';
       const courseId = q.get('courseId') || '';
       let msgF = '';
-      if (userType === 'formador') msgF = '&sent_by=eq.formando&is_read=eq.false';
+      if (userType === 'formador') msgF = '&sent_by=eq.formando&is_read=eq.false' + (trainerScope ? `&trainer_id=${eq(trainerScope.id)}` : '');
       else if (studentId) msgF = `&sent_by=eq.formador&is_read=eq.false&student_id=${eq(studentId)}`;
       else return ok({ messages: 0, alerts: 0 });
       const messages = (await sel(`messages?select=id${msgF}`).catch(() => [])).length;
-      const reader = userType === 'formador' ? 'formador' : studentId;
-      const alertF = userType === 'formando' && courseId
+      const reader = userType === 'formador' ? (trainerScope?.id || 'formador') : studentId;
+      let alertF = userType === 'formando' && courseId
         ? `&or=(course_id.is.null,course_id.eq.${encodeURIComponent(courseId)})` : '';
+      const mine = userType === 'formador' ? await myCourseIds() : null;
+      if (mine && trainerScope) alertF = `&or=(course_id.in.${inList(mine)},and(course_id.is.null,trainer_id.eq.${encodeURIComponent(trainerScope.id)}))`;
       const all: string[] = (await sel(`alerts?select=id${alertF}`)).map((r: Json) => r.id);
       const read = new Set((await sel(`alert_reads?select=alert_id&reader_id=${eq(reader)}`).catch(() => [])).map((r: Json) => r.alert_id));
       return ok({ messages, alerts: all.filter((a) => !read.has(a)).length });

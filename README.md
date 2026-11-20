@@ -19,7 +19,7 @@ O forScrum adapta o Scrum à formação: o curso é o produto, as competências 
 
 | Perfil | Quem é | O que faz |
 |---|---|---|
-| **Formador** | Quem orienta o curso | Cria cursos, equipas, formandos, sprints e user stories; acompanha o progresso; envia alertas e mensagens |
+| **Formador** | Quem orienta o curso (um curso pode ter vários) | Cria cursos, equipas, formandos, sprints e user stories; acompanha o progresso; envia alertas e mensagens. Só vê os cursos em que está |
 | **Formando** | Quem participa no curso | Vê os sprints da sua equipa, move as suas tarefas no quadro, vota no Scrum Poker, recebe alertas e troca mensagens com o formador |
 
 ### O ciclo de trabalho
@@ -47,7 +47,7 @@ O forScrum adapta o Scrum à formação: o curso é o produto, as competências 
 ### Como se entra
 
 - **Pelo Moodle (LTI 1.3):** quem abre a atividade no Moodle entra automaticamente — o professor como formador, o aluno como formando. Ver [`docs/MOODLE.md`](docs/MOODLE.md).
-- **Pelo ecrã de entrada:** escrevendo `formador`, ou o nome de um formando registado. É uma entrada simplificada, própria de um protótipo, sem palavra-passe.
+- **Pelo ecrã de entrada:** escrevendo o nome de um formador ou de um formando registado (`formador` entra como o formador inicial). É uma entrada simplificada, própria de um protótipo, sem palavra-passe.
 
 ---
 

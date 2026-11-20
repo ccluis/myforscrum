@@ -16,7 +16,8 @@ import {
   Trash2,
   MessageSquare,
   CheckCircle,
-  Award
+  Award,
+  GraduationCap,
 } from 'lucide-react';
 import { toast } from "sonner";
 import { Header } from './shared/Header';
@@ -42,7 +43,8 @@ import { Textarea } from "./ui/textarea";
 import { BackendWarning } from './BackendWarning';
 import { useApp } from '../context/AppContext';
 import { EditDialog } from './shared/EditDialog';
-import { API_URL } from '../data/database';
+import { API_URL, currentTrainer } from '../data/database';
+import { CourseTrainers } from './CourseTrainers';
 import { fetchWithRetry, formatErrorMessage, isNetworkError } from '../utils/apiRetry';
 
 interface CourseDetailsProps {
@@ -60,7 +62,7 @@ export function CourseDetails({ onBack, onNavigate, courseName, courseId, initia
   const isFormador = userType === 'formador';
   console.log('[CourseDetails] isFormador calculado:', isFormador);
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'sprints' | 'stories'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'students' | 'trainers' | 'sprints' | 'stories'>(initialTab);
   const { setSelectedUserStory, setSelectedCourse, setPreviousScreen, userProfile } = useApp();
   
   // Modals state
@@ -784,6 +786,20 @@ export function CourseDetails({ onBack, onNavigate, courseName, courseId, initia
             {activeTab === 'students' && <ChevronRight size={18} />}
           </button>
           <button
+            onClick={() => setActiveTab('trainers')}
+            className={`w-full py-3 px-4 rounded-[12px] text-[0.875rem] transition-all flex items-center justify-between ${
+              activeTab === 'trainers'
+                ? 'bg-[#3b8433] text-white shadow-md'
+                : 'text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <GraduationCap size={18} />
+              <span>Formadores</span>
+            </div>
+            {activeTab === 'trainers' && <ChevronRight size={18} />}
+          </button>
+          <button
             onClick={() => setActiveTab('sprints')}
             className={`w-full py-3 px-4 rounded-[12px] text-[0.875rem] transition-all flex items-center justify-between ${
               activeTab === 'sprints'
@@ -869,6 +885,11 @@ export function CourseDetails({ onBack, onNavigate, courseName, courseId, initia
               </div>
             </div>
           </div>
+        )}
+
+        {/* Trainers Tab */}
+        {activeTab === 'trainers' && (
+          <CourseTrainers courseId={courseId} currentTrainerId={currentTrainer()?.id} />
         )}
 
         {/* Students Tab */}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { User, AlertCircle, CheckCircle, GraduationCap, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from './components/ui/sonner';
-import { API_URL, setVoteScope } from './data/database';
+import { API_URL, setVoteScope, setTrainerScope } from './data/database';
 
 // Context and Components
 import { AppProvider, useApp } from './context/AppContext';
@@ -64,7 +64,7 @@ function AppContent({
   createTeamParams: { courseId: string; courseName: string } | null;
   setCreateTeamParams: (params: { courseId: string; courseName: string } | null) => void;
   navigationParams: any;
-  ltiTeacher: { name: string; email: string } | null;
+  ltiTeacher: { id?: string; name: string; email: string } | null;
 }) {
   try {
     const { setUserType, theme, setLoggedStudent, setUserProfile, setSelectedCourse, fontSize, previousScreen } = useApp();
@@ -121,7 +121,7 @@ function AppContent({
               phone: '',
               location: '',
               bio: 'Formador',
-              expertise: 'Moodle',
+              expertise: 'forScrum',
               avatar: ltiTeacher.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2),
             });
             return;
@@ -317,7 +317,12 @@ export default function App() {
   const [sprintBoardKey, setSprintBoardKey] = useState(0); // Key para forçar reload do SprintBoard
   const [createTeamParams, setCreateTeamParams] = useState<{ courseId: string; courseName: string } | null>(null); // NOVO: Guardar params do createTeam
   const [navigationParams, setNavigationParams] = useState<any>({}); // NOVO: Guardar params de navegação
-  const [ltiTeacher, setLtiTeacher] = useState<{ name: string; email: string } | null>(null); // Formador vindo do Moodle
+  const [ltiTeacher, setLtiTeacher] = useState<{ id?: string; name: string; email: string } | null>(null); // Formador com sessão (pelo nome ou pelo Moodle)
+
+  // Formador com sessão: só vê os seus cursos
+  useEffect(() => {
+    setTrainerScope(isLoggedIn && userType === 'formador' && ltiTeacher?.id ? { id: ltiTeacher.id, name: ltiTeacher.name } : null);
+  }, [isLoggedIn, userType, ltiTeacher]);
 
   // Votos visíveis: o formando só vê os da sua equipa; o formador vê todos
   useEffect(() => {
@@ -342,7 +347,7 @@ export default function App() {
         return;
       }
       if (data.role === 'formador') {
-        setLtiTeacher({ name: data.name, email: data.email });
+        setLtiTeacher({ id: data.trainerId, name: data.name, email: data.email });
         setUserType('formador');
         setIsLoggedIn(true);
         if (data.courseId) {
@@ -432,16 +437,24 @@ export default function App() {
     try {
       const trimmedUsername = username.trim();
       
-      // Verificar se é "Formador" (case-insensitive)
-      if (trimmedUsername.toLowerCase() === 'formador') {
-        // Login como formador - NÃO PRECISA DE PASSWORD
-        setTimeout(() => {
+      // Formador: pelo nome de um formador registado ("formador" entra como o formador inicial)
+      try {
+        const isGeneric = trimmedUsername.toLowerCase() === 'formador';
+        const trainersRes = await fetch(
+          isGeneric ? `${API_URL}/trainers` : `${API_URL}/trainers?name=${encodeURIComponent(trimmedUsername)}`
+        ).then(r => r.json());
+        const list = trainersRes.success ? trainersRes.trainers || [] : [];
+        const trainer = isGeneric ? (list.find((t: any) => t.id === 'trainer_carlos') || list[0]) : list[0];
+        if (trainer || isGeneric) {
+          setLtiTeacher(trainer ? { id: trainer.id, name: trainer.name, email: trainer.email } : null);
           setIsLoading(false);
           setUserType('formador');
-          toast.success('Bem-vindo, Formador!');
+          toast.success(`Bem-vindo, ${trainer?.name || 'Formador'}!`);
           setIsLoggedIn(true);
-        }, 1000);
-        return;
+          return;
+        }
+      } catch (error) {
+        console.error('[Login] Erro ao procurar formador:', error);
       }
       
       // Se não é formador, é formando - NÃO PRECISA MAIS DE PASSWORD
@@ -874,7 +887,7 @@ export default function App() {
                       {username.toLowerCase() === 'formador' ? (
                         <span>Vai entrar como <strong>Formador</strong></span>
                       ) : (
-                        <span>Vai entrar como <strong>Formando</strong></span>
+                        <span>Vai entrar como <strong>{username.trim()}</strong></span>
                       )}
                     </p>
                   </div>

@@ -68,6 +68,8 @@ Os nomes dos campos são convertidos automaticamente (`courseId` ↔ `course_id`
 | `/api/alert-reads` | GET (`?readerId=`), POST `{ readerId, alertIds }` | Quem já leu cada alerta (`readerId` = id do formando ou `formador`) |
 | `/api/messages`, `/api/messages/:id` | GET (`?formandoId=`, `?sentBy=`), POST, PUT, DELETE | Editar o título ou o texto regista `editedAt` |
 | `/api/unread` | GET (`?userType=&studentId=&courseId=`) | Contadores de mensagens e alertas por ler |
+| `/api/trainers`, `/api/trainers/:id` | GET (`?courseId=`, `?name=`), POST, PUT | Formadores; POST devolve o existente se o nome já estiver registado |
+| `/api/course-trainers` | POST/DELETE `{ courseId, trainerId }` | Associar ou retirar um formador de um curso (fica sempre pelo menos um) |
 
 Exemplo, num componente:
 
@@ -77,6 +79,10 @@ import { API_URL } from '../data/database';
 const res = await fetch(`${API_URL}/sprints?courseId=${courseId}`);
 const { success, sprints } = await res.json();
 ```
+
+### Quem vê o quê
+- **Formador:** `setTrainerScope()` (chamado em `App.tsx` ao entrar) faz com que cursos, equipas, formandos, sprints, stories e alertas fiquem limitados aos cursos do formador (`course_trainers`), e as mensagens às suas conversas.
+- **Formando:** `setVoteScope()` limita os votos visíveis aos da sua equipa.
 
 ### Acrescentar uma tabela nova
 1. Criar um script `supabase/migrations/003_....sql` (tabela, chaves estrangeiras, RLS e `grant`, como nos scripts anteriores) e corrê-lo no SQL Editor.

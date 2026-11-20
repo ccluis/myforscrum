@@ -50,6 +50,9 @@ export function MessagesFormando({ onBack }: MessagesFormandoProps) {
   
   // Students list
   const [students, setStudents] = useState<any[]>([]);
+  // Formadores do curso do formando (para escolher a quem escreve)
+  const [courseTrainers, setCourseTrainers] = useState<any[]>([]);
+  const [selectedTrainerId, setSelectedTrainerId] = useState('');
   const [loadingStudents, setLoadingStudents] = useState(false);
 
   const isFormador = userType === 'formador';
@@ -64,6 +67,15 @@ export function MessagesFormando({ onBack }: MessagesFormandoProps) {
     loadMessages();
     if (isFormador) {
       loadStudents();
+    } else if (loggedStudent?.courseId) {
+      fetch(`${API_URL}/trainers?courseId=${encodeURIComponent(loggedStudent.courseId)}`)
+        .then(r => r.json())
+        .then(data => {
+          const list = data.success ? data.trainers : [];
+          setCourseTrainers(list);
+          if (list.length === 1) setSelectedTrainerId(list[0].id);
+        })
+        .catch(() => setCourseTrainers([]));
     }
     // Atualizar a cada 30 segundos para ver mensagens novas
     const intervalId = setInterval(loadMessages, 30000);
@@ -150,6 +162,11 @@ export function MessagesFormando({ onBack }: MessagesFormandoProps) {
       toast.error('Selecione um formando');
       return;
     }
+    if (!isFormador && courseTrainers.length > 1 && !selectedTrainerId) {
+      toast.error('Escolha o formador');
+      return;
+    }
+    const selectedTrainer = courseTrainers.find(t => t.id === selectedTrainerId) || courseTrainers[0];
 
     const selectedStudent = students.find(s => s.id === selectedFormandoId);
     const newMessage = isFormador
@@ -162,7 +179,8 @@ export function MessagesFormando({ onBack }: MessagesFormandoProps) {
       : {
           formandoId: userId,
           formandoName: userName,
-          formadorName: 'Formador',
+          formadorId: selectedTrainer?.id || '',
+          formadorName: selectedTrainer?.name || 'Formador',
           sentBy: 'formando',
         };
 
@@ -383,7 +401,7 @@ export function MessagesFormando({ onBack }: MessagesFormandoProps) {
                           <span>•</span>
                           <span className="flex items-center gap-1">
                             <User size={12} />
-                            {message.sentBy === 'formador' ? `De: ${message.formadorName}` : 'Enviada por si ao formador'}
+                            {message.sentBy === 'formador' ? `De: ${message.formadorName}` : `Enviada por si a ${message.formadorName || 'formador'}`}
                           </span>
                         </>
                       )}
@@ -510,21 +528,38 @@ export function MessagesFormando({ onBack }: MessagesFormandoProps) {
               </div>
             )}
 
-            {/* Para formandos: mostrar destinatário fixo */}
+            {/* Para formandos: escolher o formador */}
             {!isFormador && (
               <div className="grid gap-2">
                 <Label className="dark:text-slate-200 text-[0.875rem] font-medium">
                   Para
                 </Label>
-                
-                <div className="flex items-center gap-2.5 p-2.5 rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/30">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center text-white text-[0.6875rem] font-medium">
-                    F
+                {courseTrainers.length === 0 ? (
+                  <p className="text-[0.8125rem] text-slate-600 p-2.5 rounded-lg border-2 border-slate-200 bg-slate-50">Formador</p>
+                ) : (
+                  <div className="grid gap-2" role="radiogroup" aria-label="Formador">
+                    {courseTrainers.map((t: any) => {
+                      const selected = selectedTrainerId === t.id;
+                      return (
+                        <button
+                          type="button"
+                          key={t.id}
+                          role="radio"
+                          aria-checked={selected}
+                          onClick={() => setSelectedTrainerId(t.id)}
+                          className={`flex items-center gap-2.5 p-2.5 rounded-lg border-2 text-left transition-colors ${
+                            selected ? 'border-[#0a7da0] bg-[#0a7da0]/10' : 'border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/30'
+                          }`}
+                        >
+                          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center text-white text-[0.6875rem] font-medium">
+                            {t.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
+                          </div>
+                          <p className="text-[0.8125rem] font-medium text-slate-800 dark:text-slate-200">{t.name}</p>
+                        </button>
+                      );
+                    })}
                   </div>
-                  <p className="text-[0.8125rem] font-medium text-slate-800 dark:text-slate-200">
-                    Formador
-                  </p>
-                </div>
+                )}
               </div>
             )}
 

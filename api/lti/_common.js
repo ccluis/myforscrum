@@ -82,14 +82,15 @@ export function userFromClaims(claims) {
     name,
     email: claims.email || '',
     studentId: `moodle_${short(`${claims.iss}|${claims.sub}`)}`,
+    trainerId: isTeacher ? `trainer_moodle_${short(`${claims.iss}|${claims.sub}`)}` : '',
     courseId: context.id ? `moodle_${short(`${claims.iss}|${context.id}`)}` : '',
     courseName: context.title || context.label || 'Curso Moodle',
   };
 }
 
 /** Pedido REST ao Supabase (inserir sem duplicar). */
-async function upsert(table, row, fetchImpl) {
-  const res = await fetchImpl(`${SUPABASE_URL}/rest/v1/${table}?on_conflict=id`, {
+async function upsert(table, row, fetchImpl, conflict = 'id') {
+  const res = await fetchImpl(`${SUPABASE_URL}/rest/v1/${table}?on_conflict=${conflict}`, {
     method: 'POST',
     headers: {
       apikey: SUPABASE_ANON_KEY,
@@ -108,6 +109,10 @@ export async function syncToDatabase(user, fetchImpl = fetch) {
   await upsert('courses', { id: user.courseId, name: user.courseName, description: 'Curso ligado ao Moodle (LTI)' }, fetchImpl);
   if (user.role === 'formando') {
     await upsert('students', { id: user.studentId, name: user.name, email: user.email, course_id: user.courseId }, fetchImpl);
+  } else {
+    // Professor do Moodle: fica registado como formador e ligado ao curso
+    await upsert('trainers', { id: user.trainerId, name: user.name, email: user.email }, fetchImpl);
+    await upsert('course_trainers', { course_id: user.courseId, trainer_id: user.trainerId }, fetchImpl, 'course_id,trainer_id');
   }
 }
 

@@ -11,7 +11,7 @@ O MyforScrum apoia a framework **forScrum**, que adapta o Scrum à formação de
 | Forma | Como |
 |---|---|
 | **Pelo Moodle** | Abrir a atividade **MyforScrum** no curso do Moodle. Entra-se automaticamente: o professor como **formador**, o aluno como **formando**. |
-| **Pelo endereço** | Abrir https://myforscrum.vercel.app e escrever `formador`, ou o nome de um formando registado, e carregar em **Entrar na Plataforma**. |
+| **Pelo endereço** | Abrir https://myforscrum.vercel.app e escrever o **seu nome** (formador ou formando registado) e carregar em **Entrar na Plataforma**. Escrever `formador` entra como o formador inicial. |
 
 A barra de baixo tem sempre texto por baixo de cada ícone. Em **Perfil** (ícone de roda dentada no topo) pode escolher o **modo escuro** e o **tamanho da letra**.
 
@@ -29,6 +29,12 @@ A barra de baixo tem sempre texto por baixo de cada ícone. Em **Perfil** (ícon
 
 > Apagar um curso apaga também as suas equipas, formandos, sprints e user stories. A aplicação pede sempre confirmação.
 
+### 2.1a Vários formadores
+- Cada formador só vê os **cursos em que está**. Quem cria um curso fica logo associado a ele.
+- No curso, separador **Formadores → Acrescentar formador**: escrever o nome (e o email) de um colega. Se já existir, fica associado ao curso; se não, é criado. O colega entra escrevendo o seu nome.
+- Um curso pode ter vários formadores; o caixote do lixo retira um formador do curso (fica sempre pelo menos um).
+- Pelo Moodle, cada professor fica registado como formador do curso automaticamente.
+
 ### 2.2 Planear um sprint
 1. No curso, separador **Sprints → Novo Sprint**: nome, objetivo, datas de início e fim e, se quiser, a equipa.
 2. Separador **User stories → Nova Story**: nome, descrição, prioridade, **equipa**, **sprint** a que pertence e critérios de aceitação.
@@ -42,7 +48,7 @@ O **Início** do formador mostra, com filtros por **curso**, **equipa** e **spri
 
 ### 2.4 Comunicar
 - **Alertas → Gerir → Criar novo alerta**: escolher o tipo (**Aviso** ou **Urgente**), o título, o texto e o curso, ou "Todos os cursos". Os formandos veem o número de alertas novos no Início.
-- **Mensagens → Nova Mensagem**: escolher o formando, escrever e enviar. Também se pode escrever a partir da lista de formandos do curso (**⋮ → Mensagem**). As respostas dos formandos aparecem destacadas como **Nova**.
+- **Mensagens → Nova Mensagem**: escolher o formando, escrever e enviar. Cada formador só vê as suas conversas. Também se pode escrever a partir da lista de formandos do curso (**⋮ → Mensagem**). As respostas dos formandos aparecem destacadas como **Nova**.
 - **Calendário**: sprints e sessões ao longo do tempo.
 
 ---
@@ -77,7 +83,7 @@ Cada cartão mostra a prioridade e os pontos. Quando uma story chega a **Conclu�
 
 ### 3.4 Alertas e mensagens
 - **Alertas**: lista dos avisos do formador. Tocar num alerta marca-o como lido; **Marcar Todos como Lidos** limpa o contador.
-- **Mensagens**: conversa com o formador (mensagens recebidas e enviadas). **Nova Mensagem** para escrever ao formador.
+- **Mensagens**: conversas com os formadores (mensagens recebidas e enviadas). Em **Nova Mensagem**, escolher a que formador do curso escreve.
 
 ---
 

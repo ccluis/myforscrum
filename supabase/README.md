@@ -14,7 +14,9 @@ PostgreSQL no Supabase (projeto `malixbxxfqzzszvjyrla`), acedido pela aplicaçã
 | `votes` | Votos do Scrum Poker (um por pessoa e story) | `story_id` → user_stories |
 | `alerts` | Alertas (gerais ou de um curso) | `course_id` → courses |
 | `alert_reads` | Quem já leu cada alerta | `alert_id` → alerts |
-| `messages` | Mensagens entre formador e formando | `student_id` → students |
+| `messages` | Mensagens entre formador e formando | `student_id` → students; `trainer_id` → trainers |
+| `trainers` | Formadores | — |
+| `course_trainers` | Que formadores dão cada curso | `course_id` → courses; `trainer_id` → trainers |
 
 Regras de eliminação (`ON DELETE`):
 - apagar um **curso** apaga as suas equipas, formandos, sprints, user stories, votos, alertas e mensagens;
@@ -30,6 +32,7 @@ No Supabase: **SQL Editor → New query**, colar e carregar em **Run**, por esta
 
 1. `migrations/001_relacional.sql` — tabelas principais. Se existir uma tabela antiga do tipo chave-valor (`kv_store_…`), os seus dados são copiados; não é apagado nada.
 2. `migrations/002_mensagens_alertas.sql` — mensagens e registo de alertas lidos.
+3. `migrations/003_formadores.sql` — vários formadores: cada um vê só os seus cursos; o formador inicial fica ligado aos cursos existentes.
 
 Os scripts podem ser executados mais de uma vez sem duplicar dados.
 
