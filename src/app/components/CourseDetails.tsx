@@ -450,9 +450,22 @@ export function CourseDetails({ onBack, onNavigate, courseName, courseId, initia
   };
 
   // Helper para calcular a performance de uma equipa
+ // Sprints e user stories de uma equipa: os do curso sem equipa definida ou com esta equipa
+  const getTeamWork = (teamId: string) => {
+    const team = teams.find(t => t.id === teamId);
+    const teamSprints = sprints.filter(sp => !sp.teamId || sp.teamId === teamId);
+    const sprintIds = new Set(teamSprints.map(sp => sp.id));
+    const teamStories = stories.filter(st =>
+      (st.teamId ? st.teamId === teamId : (!st.team || st.team === team?.name)) &&
+      (!st.sprintId || sprintIds.has(st.sprintId))
+    );
+    return { teamSprints, teamStories };
+  };
+
+  const STORY_STATUS: Record<string, string> = { backlog: 'Referencial', todo: 'A Fazer', inProgress: 'Em Curso', done: 'Concluído' };
+
   const getTeamPerformance = (teamId: string) => {
-    // Buscar todas as stories atribuídas a esta equipa
-    const teamStories = stories.filter(s => s.teamId === teamId);
+    const { teamStories } = getTeamWork(teamId);
     
     if (teamStories.length === 0) return { performance: 0, completedStories: 0, totalStories: 0 };
     
@@ -1094,6 +1107,52 @@ export function CourseDetails({ onBack, onNavigate, courseName, courseId, initia
                         </div>
                       </div>
                     </button>
+
+                    {/* Sprints e user stories da equipa */}
+                    {(() => {
+                      const { teamSprints, teamStories } = getTeamWork(team.id);
+                      if (teamSprints.length === 0) {
+                        return <p className="mt-3 text-[0.75rem] text-slate-500">Ainda não há sprints para esta equipa.</p>;
+                      }
+                      return (
+                        <div className="mt-3 pt-3 border-t border-slate-100 space-y-3">
+                          {teamSprints.map((sp) => {
+                            const spStories = teamStories.filter(st => st.sprintId === sp.id);
+                            return (
+                              <div key={sp.id}>
+                                <button
+                                  onClick={() => onNavigate?.('sprintBoard', { sprintId: sp.id, sprintName: sp.name, teamId: team.id })}
+                                  className="w-full flex items-center justify-between text-left mb-1.5"
+                                  aria-label={`Abrir o quadro do ${sp.name}`}
+                                >
+                                  <span className="text-[0.8125rem] font-medium text-slate-800">{sp.name}</span>
+                                  <span className="flex items-center text-[0.6875rem] text-slate-500">
+                                    {spStories.length} stories <ChevronRight size={16} />
+                                  </span>
+                                </button>
+                                <ul className="space-y-1">
+                                  {spStories.map((st) => (
+                                    <li key={st.id}>
+                                      <button
+                                        onClick={() => {
+                                          setSelectedUserStory(st);
+                                          setPreviousScreen('courseDetails');
+                                          onNavigate?.('userStoryDetails');
+                                        }}
+                                        className="w-full flex items-center justify-between gap-2 bg-slate-50 rounded-[8px] px-2.5 py-2 text-left hover:bg-slate-100"
+                                      >
+                                        <span className="text-[0.8125rem] text-slate-700 truncate">{st.title}</span>
+                                        <span className="text-[0.625rem] text-slate-500 flex-shrink-0">{STORY_STATUS[st.status] || 'Referencial'}</span>
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
                   );
                 })}
