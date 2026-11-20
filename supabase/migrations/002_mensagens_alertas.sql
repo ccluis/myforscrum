@@ -1,6 +1,6 @@
 -- =====================================================================
 -- MyforScrum: mensagens e leitura de alertas
--- Executar UMA vez no projeto malixbxxfqzzszvjyrla:
+-- Executar UMA vez no projeto mynzkijoyrgcsedhuqhz:
 -- Dashboard > SQL Editor > New query > colar > Run
 -- Não apaga nada. Pode ser executado mais de uma vez.
 -- =====================================================================

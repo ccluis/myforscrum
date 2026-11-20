@@ -4,10 +4,10 @@
  */
 import crypto from 'node:crypto';
 
-export const SUPABASE_URL = 'https://malixbxxfqzzszvjyrla.supabase.co';
-// Chave pública (anon) do Supabase — a mesma que a aplicação usa no browser.
+export const SUPABASE_URL = 'https://mynzkijoyrgcsedhuqhz.supabase.co';
+// Chave pública (publishable) do Supabase — a mesma que a aplicação usa no browser.
 export const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hbGl4Ynh4ZnF6enN6dmp5cmxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwOTIwNjIsImV4cCI6MjA5NDY2ODA2Mn0.zF2DcL_WfSz76s9HG_9G-mzHWNW-zCnekdUc1oRR0Es';
+  'sb_publishable_BG1CeK9ZWESk25mZf_imrg_oTrM8Yz9';
 
 // Segredo para assinar o "state". Pode ser definido no Vercel (LTI_SECRET);
 // sem ele usa-se um valor fixo (aceitável para um protótipo).

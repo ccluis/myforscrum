@@ -1,6 +1,6 @@
 # Base de dados do MyforScrum
 
-PostgreSQL no Supabase (projeto `malixbxxfqzzszvjyrla`), acedido pela aplicação através da API REST do Supabase.
+PostgreSQL no Supabase (projeto `mynzkijoyrgcsedhuqhz`), acedido pela aplicação através da API REST do Supabase.
 
 ## Tabelas
 
