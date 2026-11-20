@@ -386,9 +386,7 @@ export function FormandoDashboard({ onLogout, onNavigate }: FormandoDashboardPro
                       </div>
                       <div>
                         <p className="text-[0.875rem] text-slate-800 dark:text-slate-200">{member.name}</p>
-                        <p className={`text-[0.6875rem] ${isCurrentUser ? 'text-[#0a7da0]' : 'text-slate-500 dark:text-slate-400'}`}>
-                          {isCurrentUser ? 'Você' : 'Formando'}
-                        </p>
+                        {isCurrentUser && <p className="text-[0.6875rem] text-[#0a7da0]">Você</p>}
                       </div>
                     </div>
                     <div className="text-right">

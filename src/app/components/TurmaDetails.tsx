@@ -527,11 +527,6 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
                         <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400">{member.email}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`${getRoleColor(member.role || 'Formando')} px-2 py-1 rounded-[6px] text-[0.625rem]`}>
-                        {member.role || 'Formando'}
-                      </span>
-                    </div>
                   </button>
                 ))}
               </div>
