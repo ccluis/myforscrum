@@ -123,6 +123,13 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
     loadVotingHistory();
   }, [selectedUserStory?.id]);
 
+  // Atualizar os votos da equipa a cada 5 segundos (para ver os votos dos colegas)
+  useEffect(() => {
+    if (!selectedUserStory?.id) return;
+    const t = setInterval(() => loadVotingHistory(), 5000);
+    return () => clearInterval(t);
+  }, [selectedUserStory?.id]);
+
   // Voto do formando com sessão iniciada nesta story
   const [savingVote, setSavingVote] = useState(false);
   const myVote = votes.find((v: any) =>

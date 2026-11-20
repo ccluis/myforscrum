@@ -379,11 +379,8 @@ export function ScrumPoker({ onBack, sprintId }: ScrumPokerProps) {
     setVotesRevealed(true);
     toast.success('Votos revelados!');
     
-    // ✅ CORREÇÃO: Calcular e salvar IMEDIATAMENTE após revelar
-    // Usar Promise para garantir que o estado foi atualizado
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    const consensus = getVoteConsensus();
+    // Calcular e guardar logo a média dos votos
+    const consensus = getVoteConsensus(true);
     if (consensus) {
       const averagePoints = Math.round(parseFloat(consensus.avg));
       console.log('[ScrumPoker] 💾 Auto-salvando média:', averagePoints, 'pontos');
@@ -537,8 +534,15 @@ export function ScrumPoker({ onBack, sprintId }: ScrumPokerProps) {
   
   const allVoted = totalVotes === totalMembers;
 
-  const getVoteConsensus = () => {
-    if (!votesRevealed) return null;
+  // Quando toda a equipa votou, os votos aparecem a todos os membros (cada um no seu ecrã)
+  useEffect(() => {
+    if (!votesRevealed && totalMembers > 0 && allVoted) {
+      handleRevealVotes();
+    }
+  }, [allVoted, totalMembers, votesRevealed]);
+
+  const getVoteConsensus = (force = false) => {
+    if (!votesRevealed && !force) return null;
     
     // Converte votos para números, filtrando votos inválidos
     const numericVotes = teamMembers
