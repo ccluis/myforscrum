@@ -71,8 +71,9 @@ Mostra a **minha equipa**, a **velocidade**, a **conclusão** do sprint atual, o
    | **L** | Grande | 8 |
    | **XL** | Muito grande | 13 |
 
-3. Os votos ficam **ocultos** até alguém carregar em **Revelar Votos**. Nessa altura, a média passa a ser a estimativa da story.
-4. Se a equipa não concordar, **Nova Votação** apaga os votos dessa story e vota-se outra vez.
+3. Na página da user story, em **Resultado da Votação**, cada formando vê os votos dos colegas da sua equipa (atualiza sozinho a cada 5 segundos).
+4. No Scrum Poker, os votos ficam **ocultos** até toda a equipa votar ou alguém carregar em **Revelar Votos**. Nessa altura, a média passa a ser a estimativa da story.
+5. Se a equipa não concordar, **Nova Votação** apaga os votos dessa story e vota-se outra vez.
 
 ### 3.3 Trabalhar no quadro Kanban
 No sprint, **Ver Quadro Kanban** (ecrã **Quadro do Sprint**). Arrastar cada user story pelas colunas:
