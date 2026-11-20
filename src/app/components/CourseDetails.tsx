@@ -45,6 +45,7 @@ import { useApp } from '../context/AppContext';
 import { EditDialog } from './shared/EditDialog';
 import { API_URL, currentTrainer } from '../data/database';
 import { CourseTrainers } from './CourseTrainers';
+import { StudentProfile, ProfileStudent } from './shared/StudentProfile';
 import { fetchWithRetry, formatErrorMessage, isNetworkError } from '../utils/apiRetry';
 
 interface CourseDetailsProps {
@@ -91,6 +92,7 @@ export function CourseDetails({ onBack, onNavigate, courseName, courseId, initia
   
   // Sprints from database
   const [sprints, setSprints] = useState<any[]>([]);
+  const [profileStudent, setProfileStudent] = useState<ProfileStudent | null>(null);
   const [editingSprint, setEditingSprint] = useState<any | null>(null);
   const [loadingSprints, setLoadingSprints] = useState(false);
   
@@ -745,6 +747,7 @@ export function CourseDetails({ onBack, onNavigate, courseName, courseId, initia
   return (
     <div className="bg-[#f0f0f0] min-h-screen w-full font-['Roboto',-apple-system,BlinkMacSystemFont,sans-serif] pb-24 pt-[110px] dark:bg-slate-900 transition-colors duration-200">
       {/* Header */}
+      <StudentProfile student={profileStudent} onClose={() => setProfileStudent(null)} />
       <Header title={course.name} onBack={onBack} showProfile={false} />
 
       {/* Backend Warning */}
@@ -946,7 +949,12 @@ export function CourseDetails({ onBack, onNavigate, courseName, courseId, initia
                     key={student.id}
                     className="bg-white rounded-[16px] p-4 shadow-sm flex items-center justify-between"
                   >
-                    <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setProfileStudent({ ...student, courseId })}
+                      className="flex items-center gap-3 text-left"
+                      aria-label={`Ver perfil de ${student.name}`}
+                    >
                       <Avatar className="h-10 w-10 border border-slate-100">
                         <AvatarImage src={student.avatar} />
                         <AvatarFallback className="bg-slate-100 text-slate-500">
@@ -965,7 +973,7 @@ export function CourseDetails({ onBack, onNavigate, courseName, courseId, initia
                            </span>
                         </div>
                       </div>
-                    </div>
+                    </button>
                     
                     <div className="flex items-center gap-2">
                       <button 

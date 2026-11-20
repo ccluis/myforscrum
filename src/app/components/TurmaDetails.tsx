@@ -34,6 +34,7 @@ import {
 } from "./ui/select";
 import { API_URL } from '../data/database';
 import { useApp } from '../context/AppContext';
+import { StudentProfile } from './shared/StudentProfile';
 import { storyPoints, voteToPoints, sortSprints } from '../data/sprintMetrics';
 
 interface Sprint {
@@ -629,67 +630,7 @@ export function TurmaDetails({ onBack, courseName = 'forScrum', onNavigate, team
         <div className="pb-8" />
       </div>
 
-      {/* Perfil do formando */}
-      <Dialog open={!!profileMember} onOpenChange={(o) => !o && setProfileMember(null)}>
-        <DialogContent className="sm:max-w-[440px] max-h-[85vh] overflow-y-auto">
-          {profileMember && (() => {
-            const team = teamsWithMembers.find(t => t.id === profileMember.teamId);
-            const myVotes = (team?.stories || stories)
-              .map(st => ({ st, v: (st.votes || []).find(v => v.userId === profileMember.id || v.userName === profileMember.name) }))
-              .filter(x => x.v);
-            const myPoints = myVotes.reduce((sum, x) => sum + (voteToPoints(x.v!.vote) || 0), 0);
-            const initials = profileMember.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-            return (
-              <>
-                <DialogHeader>
-                  <DialogTitle>Perfil do formando</DialogTitle>
-                </DialogHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-[1rem]">
-                    {initials}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[1.0625rem] text-slate-800 dark:text-slate-100">{profileMember.name}</p>
-                    {profileMember.email && <p className="text-[0.8125rem] text-slate-500 truncate">{profileMember.email}</p>}
-                    {team && <p className="text-[0.8125rem] text-slate-600 dark:text-slate-300">{team.name}</p>}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                  <div className="bg-slate-50 rounded-[12px] p-3 text-center dark:bg-slate-700">
-                    <p className="text-[1.25rem] text-slate-800 dark:text-slate-100">{myVotes.length}</p>
-                    <p className="text-[0.75rem] text-slate-500">Votos dados</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-[12px] p-3 text-center dark:bg-slate-700">
-                    <p className="text-[1.25rem] text-slate-800 dark:text-slate-100">{myPoints}</p>
-                    <p className="text-[0.75rem] text-slate-500">Pontos votados</p>
-                  </div>
-                </div>
-
-                <div className="mt-2">
-                  <p className="text-[0.8125rem] text-slate-600 mb-2 dark:text-slate-300">Votos nas user stories</p>
-                  {myVotes.length === 0 ? (
-                    <p className="text-[0.8125rem] text-slate-500">Ainda não votou.</p>
-                  ) : (
-                    <ul className="space-y-1.5">
-                      {myVotes.map(({ st, v }) => (
-                        <li key={st.id} className="flex items-center justify-between gap-2 bg-slate-50 rounded-[10px] px-3 py-2 dark:bg-slate-700">
-                          <span className="text-[0.8125rem] text-slate-700 truncate dark:text-slate-200">{st.title}</span>
-                          <span className="bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-[8px] text-[0.8125rem] font-bold flex-shrink-0">{String(v!.vote)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setProfileMember(null)}>Fechar</Button>
-                </DialogFooter>
-              </>
-            );
-          })()}
-        </DialogContent>
-      </Dialog>
+      <StudentProfile student={profileMember} onClose={() => setProfileMember(null)} />
 
       <Dialog open={showAddMemberModal} onOpenChange={setShowAddMemberModal}>
         <DialogContent className="sm:max-w-[425px]">

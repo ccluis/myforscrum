@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { StudentProfile, ProfileStudent } from './shared/StudentProfile';
 import { BookOpen, MessageSquare, Bell, Calendar, User, ListTodo, Mail, Award, TrendingUp, BarChart3 } from 'lucide-react';
 import { SprintCharts } from './shared/SprintCharts';
 import { averageVelocity, currentSprint, velocityBySprint, voteToPoints } from '../data/sprintMetrics';
@@ -14,6 +15,7 @@ interface FormandoDashboardProps {
 export function FormandoDashboard({ onLogout, onNavigate }: FormandoDashboardProps) {
   const { unreadMessages, unreadAlerts, userProfile, loggedStudent, setSelectedUserStory } = useApp();
 
+  const [profileStudent, setProfileStudent] = useState<ProfileStudent | null>(null);
   // Estados para dados dinâmicos do backend
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [userStories, setUserStories] = useState<any[]>([]);
@@ -222,6 +224,7 @@ export function FormandoDashboard({ onLogout, onNavigate }: FormandoDashboardPro
 
   return (
     <div className="bg-[#f0f0f0] min-h-screen w-full font-['Roboto',-apple-system,BlinkMacSystemFont,sans-serif] pb-24 pt-[100px] dark:bg-slate-900 transition-colors duration-200">
+      <StudentProfile student={profileStudent} onClose={() => setProfileStudent(null)} />
       {/* Header */}
       <Header onNavigate={onNavigate} showProfile={false} />
 
@@ -380,7 +383,12 @@ export function FormandoDashboard({ onLogout, onNavigate }: FormandoDashboardPro
                         : 'bg-slate-50 dark:bg-slate-700/50'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setProfileStudent({ id: member.id, name: member.name, email: member.email, teamId: member.teamId, courseId: member.courseId })}
+                      className="flex items-center gap-3 text-left"
+                      aria-label={`Ver perfil de ${member.name}`}
+                    >
                       <div className={`w-10 h-10 bg-gradient-to-br ${colorClass} rounded-full flex items-center justify-center text-white text-[0.8125rem]`}>
                         {initials}
                       </div>
@@ -388,7 +396,7 @@ export function FormandoDashboard({ onLogout, onNavigate }: FormandoDashboardPro
                         <p className="text-[0.875rem] text-slate-800 dark:text-slate-200">{member.name}</p>
                         {isCurrentUser && <p className="text-[0.6875rem] text-[#0a7da0]">Você</p>}
                       </div>
-                    </div>
+                    </button>
                     <div className="text-right">
                       <p className="text-[0.875rem] text-[#0a7da0]">{member.points || 0} pts</p>
                     </div>
