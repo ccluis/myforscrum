@@ -34,6 +34,9 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
     selectedUserStory?.status || 'backlog'
   );
   const [votes, setVotes] = useState<any[]>([]);
+  // Membros e equipas do curso (para mostrar também quem ainda não votou)
+  const [courseMembers, setCourseMembers] = useState<any[]>([]);
+  const [courseTeams, setCourseTeams] = useState<any[]>([]);
   const [loadingVotes, setLoadingVotes] = useState(false);
 
   // Estados para edição
@@ -122,6 +125,18 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
     loadStory();
     loadVotingHistory();
   }, [selectedUserStory?.id]);
+
+  useEffect(() => {
+    const cid = story?.courseId || selectedUserStory?.courseId || loggedStudent?.courseId;
+    if (!cid) return;
+    Promise.all([
+      fetch(`${API_URL}/students?courseId=${encodeURIComponent(cid)}`).then((r) => r.json()),
+      fetch(`${API_URL}/teams?courseId=${encodeURIComponent(cid)}`).then((r) => r.json()),
+    ]).then(([st, tm]) => {
+      if (st.success) setCourseMembers(st.students);
+      if (tm.success) setCourseTeams(tm.teams);
+    }).catch(() => {});
+  }, [story?.courseId, selectedUserStory?.courseId, loggedStudent?.courseId]);
 
   // Atualizar os votos da equipa a cada 5 segundos (para ver os votos dos colegas)
   useEffect(() => {
@@ -224,6 +239,21 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
   };
 
   const votingStats = calculateVotingStats();
+
+  // Grupos a mostrar nos resultados: o formando vê a sua equipa; o formador vê todas as equipas da story
+  const voteGroups = (isFormador
+    ? courseTeams.filter((t) => !story?.team || t.name === story.team)
+    : courseTeams.filter((t) => t.id === loggedStudent?.teamId)
+  ).map((t) => ({
+    id: t.id,
+    name: t.name,
+    members: courseMembers
+      .filter((m) => m.teamId === t.id)
+      .map((m) => ({
+        ...m,
+        vote: votes.find((v) => v.userId === m.id || v.userName === m.name)?.vote ?? null,
+      })),
+  })).filter((g) => g.members.length > 0);
   
   console.log('[UserStoryDetails] 📊 VOTING STATS:', votingStats);
   console.log('[UserStoryDetails] 📝 STORY POINTS:', story?.points);
@@ -635,7 +665,7 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
         </div>
 
         {/* Estatísticas de Votação */}
-        {votingStats && (
+        {(votingStats || voteGroups.length > 0) && (
           <div className="bg-white rounded-[16px] p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <Vote size={16} className="text-slate-600" />
@@ -643,6 +673,7 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
             </div>
             
             {/* Estatísticas principais */}
+            {votingStats && (
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-[12px] p-3 text-center">
                 <p className="text-[0.6875rem] text-blue-600 mb-1">Média</p>
@@ -657,32 +688,38 @@ export function UserStoryDetails({ userType, onBack, onNavigate }: UserStoryDeta
                 <p className="text-[1.25rem] font-bold text-orange-700">{votingStats.max}</p>
               </div>
             </div>
+            )}
 
-            {/* Votos individuais */}
-            <div className="space-y-2">
-              <p className="text-[0.75rem] text-slate-500 font-medium mb-2">
-                Votos da equipa ({votingStats.validVotes}/{votingStats.totalVotes})
-              </p>
-              {votes.map((vote, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center justify-between bg-slate-50 rounded-[10px] p-2.5"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-[0.625rem] font-medium">
-                      {(vote.userName || vote.studentName)?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                    </div>
-                    <span className="text-[0.8125rem] text-slate-700">{vote.userName || vote.studentName}</span>
+            {/* Votos de cada membro da equipa (também quem ainda não votou) */}
+            <div className="space-y-4">
+              {voteGroups.map((g) => {
+                const voted = g.members.filter((m) => m.vote != null).length;
+                return (
+                  <div key={g.id} className="space-y-2">
+                    <p className="text-[0.75rem] text-slate-500 font-medium">
+                      {isFormador ? g.name : 'Votos da equipa'} ({voted}/{g.members.length} votaram)
+                    </p>
+                    {g.members.map((m) => (
+                      <div key={m.id} className="flex items-center justify-between bg-slate-50 rounded-[10px] p-2.5">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-7 h-7 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-[0.625rem] font-medium flex-shrink-0">
+                            {m.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                          </div>
+                          <span className="text-[0.8125rem] text-slate-700 truncate">
+                            {m.name}
+                            {m.id === loggedStudent?.id && <span className="text-slate-500"> (você)</span>}
+                          </span>
+                        </div>
+                        {m.vote != null ? (
+                          <div className="px-3 py-1 rounded-[8px] text-[0.8125rem] font-bold bg-purple-100 text-purple-700">{m.vote}</div>
+                        ) : (
+                          <div className="px-3 py-1 rounded-[8px] text-[0.75rem] bg-slate-200 text-slate-600">Ainda não votou</div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <div className={`px-3 py-1 rounded-[8px] text-[0.8125rem] font-bold ${
-                    (vote.value || vote.vote) === '?' || (vote.value || vote.vote) === '☕' 
-                      ? 'bg-slate-200 text-slate-600'
-                      : 'bg-purple-100 text-purple-700'
-                  }`}>
-                    {vote.value || vote.vote}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
